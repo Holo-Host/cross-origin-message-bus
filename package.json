@@ -1,0 +1,28 @@
+{
+  "name": "@holo-host/comb",
+  "version": "0.1.0",
+  "description": "Cross-origin message bus (COMB) facilitates communication between a hApp UI and Holo Chaperon",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "mocha --recursive ./tests/"
+  },
+  "author": "Holo Inc.",
+  "license": "ISC",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/Holo-Host/chaperon/"
+  },
+  "dependencies": {
+    "postmate": "^1.5.1"
+  },
+  "devDependencies": {
+    "@whi/stdlog": "^0.3.0",
+    "axios": "^0.19.0",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.1",
+    "node-fetch": "^2.6.0",
+    "puppeteer": "^1.20.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9"
+  }
+}
