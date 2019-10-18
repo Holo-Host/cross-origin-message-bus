@@ -12,32 +12,36 @@ const fs				= require('fs');
 const HAPP_PORT				= 4531;
 const CHAP_PORT				= 4532;
 
-const base_dir				= ".";
+function create_server ( base_dir, port ) {
+    const server			= http.createServer(function (request, response) {
+	try {
+	    const req_url		= url.parse( request.url );
 
-function handle_requests (request, response) {
-    try {
-	const req_url			= url.parse( request.url );
+	    const fs_path		= base_dir + path.normalize( req_url.pathname );
 
-	const fs_path			= base_dir + path.normalize( req_url.pathname );
-
-	log.normal("Looking for file @ %s", fs_path );
-	var file_stream			= fs.createReadStream( fs_path );
-	file_stream.pipe( response );
-	file_stream.on('open', function () {
-	    response.writeHead( 200 );
-	});
-	file_stream.on('error',function(e) {
-	    // assume the file doesn't exist
-	    response.writeHead( 404 );
+	    log.normal("Looking for file @ %s", fs_path );
+	    var file_stream		= fs.createReadStream( fs_path );
+	    file_stream.pipe( response );
+	    file_stream.on('open', function () {
+		response.writeHead( 200 );
+	    });
+	    file_stream.on('error',function(e) {
+		// assume the file doesn't exist
+		response.writeHead( 404 );
+		response.end();
+	    });
+	} catch( e ) {
+	    log.fatal("Failed to process request: %s", e );
+	    console.error( e );
+	    
+	    response.writeHead( 500 );
 	    response.end();
-	});
-    } catch( e ) {
-	log.fatal("Failed to process request: %s", e );
-	console.error( e );
-	
-	response.writeHead( 500 );
-	response.end();
-    }
+	}
+    });
+
+    server.listen( port );
+    
+    return server;
 }
 
 function async_wrapper ( fn ) {
@@ -51,11 +55,8 @@ function async_wrapper ( fn ) {
 }
 
 function main () {
-    const happ_server			= http.createServer( handle_requests );
-    const chap_server			= http.createServer( handle_requests );
-
-    happ_server.listen( HAPP_PORT );
-    chap_server.listen( CHAP_PORT );
+    const happ_server			= create_server( "./html/happ",		HAPP_PORT );
+    const chap_server			= create_server( "./html/chaperon",	CHAP_PORT );
 
     return {
 	"servers": {

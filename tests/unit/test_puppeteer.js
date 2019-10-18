@@ -12,7 +12,7 @@ const puppeteer				= require('puppeteer');
 const http_servers			= require('../setup.js');
 
 
-describe("Testing setup for tests", function() {
+describe("Testing puppeteer with test servers", function() {
 	
     it('should start test servers, connect with puppeteer, then close', async function () {
 	const setup			= http_servers();
