@@ -1,8 +1,9 @@
 
 import Postmate			from 'postmate';
 
-class Child {
+class ChildAPI {
 
+    url		: string;
     msg_count	: number;
     responses	: object;
     msg_bus	: any;
@@ -11,16 +12,15 @@ class Child {
 
 	// if ( debug )
 	//     Postmate.debug	= true;
+	this.url		= url;
 	this.msg_count		= 0;
 	this.responses		= {};
-
-	this.init();
     }
 
-    async init () {
+    async connect () {
 	const chaperon		= await new Postmate({
 	    "container": document.body,
-	    "url": "http://localhost:4532/index.html",
+	    "url": this.url,
 	    "classListArray": ["chaperon-frame"],
 	});
 
@@ -31,7 +31,7 @@ class Child {
 
 	this.msg_bus		= chaperon;
 
-	return chaperon;
+	return this;
     }
 
     set ( key, value ) {
@@ -41,7 +41,7 @@ class Child {
     run ( method, data ) {
 	let msg_id		= this.msg_count++;
 	
-	this.msg_bus.call( method, [ msg_id, data ] );
+	this.msg_bus.call( "exec", [ msg_id, method, data ] );
 	
 	return new Promise((f,r) => {
 	    this.responses[msg_id]	= f;
@@ -52,30 +52,51 @@ class Child {
 }
 
 
-class Parent {
+class ParentAPI {
 
+    msg_bus	: any;
+    methods	: object;
+    
     constructor ( methods ) {
 	null;
+
+	this.methods			= methods;
 	
 	// if ( debug )
 	//     Postmate.debug	= true;
     }
 
-    async init () {
+    async connect () {
 	const parent = await new Postmate.Model({
-	    "init": async function ( data ) {
-		const [msg_id, mode] = data;
-		
-		console.log( mode );
+	    "exec": async ( data ) => {
+		const [msg_id, method, ...args] = data;
 
-		parent.emit("response", [ msg_id, true ]);
+		const resp		= await this.methods[ method ].apply( this, args );
+		
+		parent.emit("response", [ msg_id, resp ]);
 	    }
-	})	
+	});
+
+	this.msg_bus			= parent;
+	
+	return this;
     }
     
 }
 
+const COMB = {
+    "connect": async function ( url ) {
+	const child			= new ChildAPI( url );
+	await child.connect();
+	return child;
+    },
+    "listen": async function ( methods ) {
+	const parent			= new ParentAPI( methods );
+	await parent.connect();
+	return parent;
+    },
+};
 
-// const initialized	= await request("init", "development");
-
-// console.log( initialized );
+export {
+    COMB,
+}

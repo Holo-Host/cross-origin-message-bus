@@ -1,49 +1,6 @@
 
-<script src="https://cdn.jsdelivr.net/npm/postmate@1.5.1/build/postmate.min.js"
-	integrity="sha256-QiOvVDY/8Oq7LftHYbaeDge2G+Jc2czsr19CtviluZw="
-	crossorigin="anonymous"></script>
+<script src="/comb/holo_hosting_comb.js"></script>
 
 <h1>hApp!</h1>
 
 <div id="main-content">Hello World</div>
-
-<script type="text/javascript">
-    (async function () {
-
-	Postmate.debug		= true;
-	const chaperon		= await new Postmate({
-	    "container": document.body,
-	    "url": "http://localhost:4532/index.html",
-	    "classListArray": ["chaperon-frame"],
-	});
-
-	const responses		= {};
-
-	chaperon.on('response', function ( data ) {
-	    let [k,v]		= data;
-	    responses[ k ]( v );
-	});
-
-	let count		= 0;
-	function request ( method, data ) {
-	    let msg_id		= count++;
-	    
-	    chaperon.call( method, [ msg_id, data ] );
-	    
-	    return new Promise((f,r) => {
-		responses[msg_id]	= f;
-
-		// TODO: make a timout that calls r
-	    });
-	}
-	
-	try {
-	    const initialized	= await request("init", "development");
-
-	    console.log( initialized );
-	} catch ( err ) {
-	    console.error( err );
-	}
-    })();
-</script>
-      

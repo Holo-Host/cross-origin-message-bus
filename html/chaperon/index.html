@@ -1,20 +1,18 @@
 
-<script src="https://cdn.jsdelivr.net/npm/postmate@1.5.1/build/postmate.min.js"
-	integrity="sha256-QiOvVDY/8Oq7LftHYbaeDge2G+Jc2czsr19CtviluZw="
-	crossorigin="anonymous"></script>
+<script src="/comb/holo_hosting_comb.js"></script>
 
 <h1>Chaperon!</h1>
 
 <script type="text/javascript">
     (async function () {
-	Postmate.debug		= true;
-	const parent		= await new Postmate.Model({
-	    "init": async function ( data ) {
-		const [msg_id, mode] = data;
-		console.log( mode );
-
-		parent.emit("response", [ msg_id, true ]);
-	    }
-	});
+	try {
+	    const parent	= await COMB.listen({
+		"test": async function () {
+		    return "Hello World";
+		}
+	    });
+	} catch ( err ) {
+	    console.error( String(err) );
+	}
     })();
 </script>
