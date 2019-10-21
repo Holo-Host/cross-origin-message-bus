@@ -6,6 +6,31 @@ COMB is a library that facilitates the calls between the parent window (hApp UI)
 
 Used by `Holo Chaperone` and `Holo Hosting Web SDK`.
 
+## Architecture
+
+We use `Postmate` to set up a message tunnel between the parent and child frames.
+
+### API
+
+```javascript
+const child = await comb.connect( url );
+
+await child.set("mode", mode );
+await child.run("signIn");
+```
+
+```javascript
+const parent = comb.listen({
+    "signIn": async function ( ...args ) {
+		if ( this.mode === DEVELOP )
+            ...
+		else
+            ...
+    	return response;
+    },
+});
+```
+
 ## Features
 
 - Parent/Child communication line
