@@ -8,7 +8,7 @@ dist/$(NAME).js:	build/index.js
 	npx webpack --mode production --output-filename $(NAME).js --target web --output-library-target window ./build/index.js
 
 docs/index.html:	build/index.js
-	npx jsdoc --verbose -c ./docs/.jsdoc.json --destination ./docs build/index.js
+	npx jsdoc --verbose -c ./docs/.jsdoc.json --private --destination ./docs build/index.js
 
 
 .PHONY:		src build dist docs docs-watch dist-watch

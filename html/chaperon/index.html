@@ -8,9 +8,12 @@
 	try {
 	    COMB.debug();
 	    const parent	= await COMB.listen({
-		"test": async function () {
+		"test": async function ( ...args ) {
+		    return "Hello World: " + JSON.stringify(args);
+		},
+		"test_synchronous": function () {
 		    return "Hello World";
-		}
+		},
 	    });
 	} catch ( err ) {
 	    console.error( String(err) );

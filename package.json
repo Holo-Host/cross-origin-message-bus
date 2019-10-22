@@ -7,6 +7,9 @@
     "test": "mocha --recursive --timeout 5000 ./tests/"
   },
   "author": "Holo Inc.",
+  "contributors": [
+    "Matthew Brisebois <matthew.brisebois@holo.host>"
+  ],
   "license": "ISC",
   "repository": {
     "type": "git",

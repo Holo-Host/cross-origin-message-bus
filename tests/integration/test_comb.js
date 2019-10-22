@@ -79,10 +79,18 @@ describe("Testing COMB", function() {
 
     	const page			= await create_page( happ_url );
 
+	let answer;
 	try {
-	    const answer		= await page.evaluate(async function ( frame_url )  {
-		const child		= await COMB.connect( frame_url );
-		return await child.run("test");
+	    answer			= await page.evaluate(async function ( frame_url )  {
+		window.child		= await COMB.connect( frame_url );
+		return await child.run("test", "counting", [1,2,3], 4 );
+	    }, chap_url );
+
+	    expect( answer		).to.equal( "Hello World: [\"counting\",[1,2,3],4]" );
+
+	    
+	    answer			= await page.evaluate(async function ( frame_url )  {
+		return await child.run("test_synchronous");
 	    }, chap_url );
 
 	    expect( answer		).to.equal( "Hello World" );
