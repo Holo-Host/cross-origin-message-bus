@@ -1,46 +1,12 @@
-import Postmate				from 'postmate';
-
 import { logging }			from '@holo-host/service-worker-logger';
 
+import Postmate				from 'postmate';
+
+import async_with_timeout		from './async_with_timeout';
+import { TimeoutError }			from './async_with_timeout';
+
 const log				= logging.getLogger('COMB');
-log.setLevel('debug');
-
-class TimeoutError extends Error {
-
-    timeout	: number;
-    
-    constructor( message : string, timeout : number, ...params ) {
-	// Pass remaining arguments (including vendor specific ones) to parent constructor
-	super( message );
-
-	// Maintains proper stack trace for where our error was thrown (only available on V8)
-	if ( Error.captureStackTrace ) {
-	    Error.captureStackTrace( this, TimeoutError );
-	}
-
-	this.name			= 'TimeoutError';
-	this.timeout			= timeout;
-    }
-}
-
-function async_with_timeout ( fn, timeout = 2000 ) : Promise<any> {
-    return new Promise(async (f,r) => {
-	log.debug("Set timeout async timeout to", timeout );
-	const to_id			= setTimeout(() => {
-	    log.warn("Triggered async timeout");
-	    r( new TimeoutError("Waited for " + (timeout/1000) + " seconds", timeout ) );
-	}, timeout);
-
-	try {
-	    const result		= await fn();
-	    f( result );
-	} catch ( err ) {
-	    r( err );
-	} finally {
-	    clearTimeout( to_id );
-	}
-    });
-}
+log.setLevel('error');
 
 
 class ChildAPI {
@@ -51,9 +17,6 @@ class ChildAPI {
     msg_bus	: any;
 
     constructor ( url ) {
-
-	// if ( debug )
-	//     Postmate.debug	= true;
 	this.url			= url;
 	this.msg_count			= 0;
 	this.responses			= {};
@@ -116,14 +79,10 @@ class ChildAPI {
 	return this;
     }
 
-    set ( key, value ) {
-	null;
-    }
-
-    run ( method, data ) {
+    private request ( pm_method, fn_name, data ) {
 	let msg_id			= this.msg_count++;
 	
-	this.msg_bus.call( "exec", [ msg_id, method, data ] );
+	this.msg_bus.call( pm_method, [ msg_id, fn_name, data ] );
 	log.info("Sent request with msg_id:", msg_id );
 	
 	return async_with_timeout(async () => {
@@ -134,6 +93,14 @@ class ChildAPI {
 	    return await request;
 	}, 1000 );
     }
+
+    async set ( key, value ) {
+	return await this.request( "set_attr", key, value );
+    }
+
+    async run ( method, ...args ) {
+	return await this.request( "exec", method, args );
+    }
 }
 
 
@@ -143,18 +110,13 @@ class ParentAPI {
     methods	: object;
     
     constructor ( methods ) {
-	null;
-
 	this.methods			= methods;
-	
-	// if ( debug )
-	//     Postmate.debug	= true;
     }
 
     async connect () {
 	const parent = await new Postmate.Model({
 	    "exec": async ( data ) => {
-		const [msg_id, method, ...args] = data;
+		const [msg_id, method, args] = data;
 
 		const fn		= this.methods[ method ];
 		
@@ -162,10 +124,28 @@ class ParentAPI {
 		    log.error("Method does not exist", method );
 		    return parent.emit("response", [ msg_id, new Error("Method '"+ method +"' does not exist") ]);
 		}
+		if ( typeof fn !== "function" ) {
+		    log.error("Method is not a function: type", typeof fn );
+		    return parent.emit("response", [ msg_id, new Error("Method '" + method + "' is not a function. Found type '" + typeof fn + "'") ]);
+		}
 		
-		const resp		= await fn.apply( this, args );
+		const resp		= await fn.apply( this.methods, args );
 		
 		parent.emit("response", [ msg_id, resp ]);
+	    },
+	    "set_attr": async ( data ) => {
+		const [msg_id, key, value] = data;
+
+		const existing_value	= this.methods[ key ];
+
+		if ( typeof existing_value === "function" ) {
+		    log.error("Cannot overwrite '"+ key +"' because it is a function");
+		    return parent.emit("response", [ msg_id, new Error("Cannot overwrite '" + key + "' because it is a function") ]);
+		}
+		
+		this.methods[ key ]	= value;
+		
+		parent.emit("response", [ msg_id, true ]);
 	    }
 	});
 
@@ -177,6 +157,10 @@ class ParentAPI {
 }
 
 const COMB = {
+    "debug": function ( level = 'debug' ) {
+	Postmate.debug			= true;
+	log.setLevel( level );
+    },
     "connect": async function ( url ) {
 	const child			= new ChildAPI( url );
 	await child.connect();

@@ -2,9 +2,9 @@
   "name": "@holo-host/comb",
   "version": "0.1.0",
   "description": "Cross-origin message bus (COMB) facilitates communication between a hApp UI and Holo Chaperon",
-  "main": "dist/index.js",
+  "main": "dist/holo_hosting_comb.js",
   "scripts": {
-    "test": "mocha --recursive ./tests/"
+    "test": "mocha --recursive --timeout 5000 ./tests/"
   },
   "author": "Holo Inc.",
   "license": "ISC",

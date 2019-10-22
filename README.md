@@ -16,15 +16,16 @@ We use `Postmate` to set up a message tunnel between the parent and child frames
 const child = await comb.connect( url );
 
 await child.set("mode", mode );
-await child.run("signIn");
+
+let response = await child.run("signIn");
 ```
 
 ```javascript
 const parent = comb.listen({
     "signIn": async function ( ...args ) {
-		if ( this.mode === DEVELOP )
+	if ( this.mode === DEVELOP )
             ...
-		else
+	else
             ...
     	return response;
     },
@@ -35,6 +36,7 @@ const parent = comb.listen({
 
 - Parent/Child communication line
 - Promise wrappers
+- Round trip method request
 - Restrict domains
 
 ## Testing

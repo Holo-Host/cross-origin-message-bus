@@ -8,9 +8,7 @@
 	try {
 	    COMB.debug();
 	    const parent	= await COMB.listen({
-		"test": async function () {
-		    return "Hello World";
-		}
+		"not_a_function": {},
 	    });
 	} catch ( err ) {
 	    console.error( String(err) );

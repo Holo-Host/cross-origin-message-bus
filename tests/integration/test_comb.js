@@ -85,7 +85,25 @@ describe("Testing COMB", function() {
 		return await child.run("test");
 	    }, chap_url );
 
-	    expect( answer	).to.equal( "Hello World" );
+	    expect( answer		).to.equal( "Hello World" );
+	} finally {
+	    await page.close();
+	}
+    });
+	
+    it("should set key/value on child and await confirmation", async function () {
+	const happ_url			= `${happ_host}/index.html`
+	const chap_url			= `${chap_host}/index.html`
+
+    	const page			= await create_page( happ_url );
+
+	try {
+	    const answer		= await page.evaluate(async function ( frame_url )  {
+		const child		= await COMB.connect( frame_url );
+		return await child.set("mode", "develop");
+	    }, chap_url );
+
+	    expect( answer		).to.be.true;
 	} finally {
 	    await page.close();
 	}
@@ -192,6 +210,92 @@ describe("Testing COMB", function() {
 
 	    expect( result.name		).to.equal( "Error" );
 	    expect( result.message	).to.equal( "Method 'undefined_method' does not exist" );
+	} finally {
+	    await page.close();
+	}
+    });
+	
+    it("should throw error because method is not a function", async function () {
+	const happ_url			= `${happ_host}/index.html`
+	const fail_url			= `${chap_host}/comb_method_is_not_a_function.html`
+
+    	const page			= await create_page( happ_url );
+
+	try {
+	    const result		= await page.evaluate(async function ( frame_url )  {
+		try {
+		    const child		= await COMB.connect( frame_url );
+		    await child.run("not_a_function");
+		} catch ( err ) {
+		    console.log( "Error message value:", err.message );
+		    return {
+			"name": err.name,
+			"message": err.message,
+		    };
+		}
+	    }, fail_url );
+
+	    expect( result.name		).to.equal( "Error" );
+	    expect( result.message	).to.equal( "Method 'not_a_function' is not a function. Found type 'object'" );
+	} finally {
+	    await page.close();
+	}
+    });
+	
+    it("should fail to set key/value because 'key' is a function", async function () {
+	const happ_url			= `${happ_host}/index.html`
+	const chap_url			= `${chap_host}/index.html`
+
+    	const page			= await create_page( happ_url );
+
+	try {
+	    const result		= await page.evaluate(async function ( frame_url )  {
+		try {
+		    const child		= await COMB.connect( frame_url );
+		    return await child.set("test", true);
+		} catch ( err ) {
+		    console.log( "Error message value:", err.message );
+		    return {
+			"name": err.name,
+			"message": err.message,
+		    };
+		}
+	    }, chap_url );
+
+	    expect( result.name		).to.equal( "Error" );
+	    expect( result.message	).to.equal( "Cannot overwrite 'test' because it is a function" );
+	} finally {
+	    await page.close();
+	}
+    });
+	
+    it("should not emit any console.log messages", async function () {
+	const happ_url			= `${happ_host}/comb_no_debug.html`
+	const chap_url			= `${chap_host}/comb_no_debug.html`
+
+	const page			= await browser.newPage();
+	
+	let no_logs			= true;
+	page.on("console", async ( msg ) => {
+    	    log.silly("From puppeteer: console.log( %s )", msg.text() );
+	    no_logs			= false;
+	});
+	
+	log.info("Go to: %s", happ_url );
+	await page.goto( happ_url, { "waitUntil": "networkidle0" } );
+	
+	try {
+	    page.on("console", async ( msg ) => {
+    		log.silly("From puppeteer: console.log( %s )", msg.text() );
+	    });
+	    
+	    const answer		= await page.evaluate(async function ( frame_url )  {
+		const child		= await COMB.connect( frame_url );
+		return await child.run("test");
+	    }, chap_url );
+
+	    expect( answer		).to.equal( "Hello World" );
+	    expect( no_logs		).to.be.true;
 	} finally {
 	    await page.close();
 	}

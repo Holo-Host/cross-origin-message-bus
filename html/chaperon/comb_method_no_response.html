@@ -6,6 +6,7 @@
 <script type="text/javascript">
     (async function () {
 	try {
+	    COMB.debug();
 	    const parent	= await COMB.listen({
 		"timeout": function () {
 		    return new Promise((f,r) => {
