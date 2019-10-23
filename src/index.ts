@@ -131,7 +131,7 @@ class ChildAPI {
      * 
      * @prop {string} url 		- iFrame URL
      * @prop {number} msg_count		- Incrementing message ID
-     * @prop {object} responses		- 
+     * @prop {object} responses		- Dictionary of request Promises waiting for their responses
      * @prop {object} msg_bus		- Postmate instance
      * @prop {promise} handshake	- Promise that is waiting for connection confirmation
      * @prop {string} class_name	- iFrame's unique class name

@@ -2,10 +2,10 @@
 NAME			= holo_hosting_comb
 
 build/index.js:		src/index.ts
-	npx tsc --esModuleInterop --lib es2015,dom --outDir ./build ./src/index.ts
+	npm run compile
 
 dist/$(NAME).js:	build/index.js
-	npx webpack --mode production --output-filename $(NAME).js --target web --output-library-target window ./build/index.js
+	npm run bundle
 
 docs/index.html:	build/index.js
 	npx jsdoc --verbose -c ./docs/.jsdoc.json --private --destination ./docs build/index.js
