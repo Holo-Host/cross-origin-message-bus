@@ -7,7 +7,7 @@
     "install": "npm run build",
     "build": "npm run compile && npm run bundle",
     "compile": "tsc --esModuleInterop --lib es2015,dom --outDir ./build ./src/index.ts",
-    "bundle": "npx webpack --mode production --output-filename holo_hosting_comb.js --target web --output-library-target window ./build/index.js",
+    "bundle": "npx webpack --mode production --output-filename holo_hosting_comb.js ./build/index.js",
     "test": "mocha --recursive --timeout 5000 ./tests/"
   },
   "author": "Holo Inc.",
