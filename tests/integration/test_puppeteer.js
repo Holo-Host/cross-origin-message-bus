@@ -3,9 +3,6 @@ const log				= require('@whi/stdlog')(path.basename( __filename ), {
     level: process.env.LOG_LEVEL || 'fatal',
 });
 
-const fs				= require('fs');
-const assert				= require('assert');
-const axios				= require('axios');
 const expect				= require('chai').expect;
 const puppeteer				= require('puppeteer');
 

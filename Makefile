@@ -13,19 +13,19 @@ docs/index.html:	build/index.js
 
 .PHONY:		src build dist docs docs-watch dist-watch
 
-build:			build/$(NAME).js
+build:			build/index.js
 dist:			dist/$(NAME).js
 docs:			docs/index.html
 
 MOCHA_OPTS	= --timeout 5000
 
-test:
+test:			dist
 	npx mocha $(MOCHA_OPTS) --recursive ./tests
-test-debug:
+test-debug:		dist
 	LOG_LEVEL=silly npx mocha $(MOCHA_OPTS) --recursive ./tests
-test-unit:
+test-unit:		dist
 	LOG_LEVEL=silly npx mocha $(MOCHA_OPTS) ./tests/unit/
-test-integration:
+test-integration:	dist
 	LOG_LEVEL=silly npx mocha $(MOCHA_OPTS) ./tests/integration/
 
 docs-watch:

@@ -3,9 +3,6 @@ const log				= require('@whi/stdlog')(path.basename( __filename ), {
     level: process.env.LOG_LEVEL || 'fatal',
 });
 
-const fs				= require('fs');
-const assert				= require('assert');
-const axios				= require('axios');
 const expect				= require('chai').expect;
 const puppeteer				= require('puppeteer');
 
@@ -245,33 +242,6 @@ describe("Testing COMB", function() {
 
 	    expect( result.name		).to.equal( "Error" );
 	    expect( result.message	).to.equal( "Method 'not_a_function' is not a function. Found type 'object'" );
-	} finally {
-	    await page.close();
-	}
-    });
-	
-    it("should fail to set key/value because 'key' is a function", async function () {
-	const happ_url			= `${happ_host}/index.html`
-	const chap_url			= `${chap_host}/index.html`
-
-    	const page			= await create_page( happ_url );
-
-	try {
-	    const result		= await page.evaluate(async function ( frame_url )  {
-		try {
-		    const child		= await COMB.connect( frame_url );
-		    return await child.set("test", true);
-		} catch ( err ) {
-		    console.log( "Error message value:", err.message );
-		    return {
-			"name": err.name,
-			"message": err.message,
-		    };
-		}
-	    }, chap_url );
-
-	    expect( result.name		).to.equal( "Error" );
-	    expect( result.message	).to.equal( "Cannot overwrite 'test' because it is a function" );
 	} finally {
 	    await page.close();
 	}

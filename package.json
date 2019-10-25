@@ -26,7 +26,6 @@
   "devDependencies": {
     "@types/node": "^12.11.1",
     "@whi/stdlog": "^0.3.0",
-    "axios": "^0.19.0",
     "braintree-jsdoc-template": "^3.3.0",
     "chai": "^4.2.0",
     "chokidar-cli": "^2.0.0",

@@ -252,7 +252,14 @@ class ChildAPI {
     }
 
     /**
-     * Set a property on the child instance and wait for the confirmation.
+     * Set a property on the child instance and wait for the confirmation so that it can be
+     * referenced in the future by another method.
+     * 
+     * Essentially, it is a shortcut to remember some state instead of having to write a method to
+     * remember some state.  Example `child.set("development_mode", true)` vs
+     * `child.call("setDevelopmentMode", true)`.  The latter requires you to define
+     * `setDevelopmentMode` on the child model where the former does not require any
+     * preconfiguration.
      * 
      * @async
      * 
@@ -265,7 +272,7 @@ class ChildAPI {
      * let success = await child.set( "key", "value" );
      */
     async set ( key, value ) {
-	return await this.request( "set_attr", key, value );
+	return await this.request( "prop", key, value );
     }
 
     /**
@@ -292,6 +299,7 @@ class ParentAPI {
     listener	: any;
     msg_bus	: any;
     methods	: object;
+    properties	: object;
     
     /**
      * Initialize a listening instance and set available methods.
@@ -303,6 +311,7 @@ class ParentAPI {
      * @prop {promise} listener		- Promise that is waiting for parent to connect
      * @prop {object} msg_bus		- Postmate instance
      * @prop {object} methods		- Method and set properties storage
+     * @prop {object} methods		- Method and set properties storage
      * 
      * @example
      * const parent = new ParentAPI({
@@ -312,8 +321,10 @@ class ParentAPI {
      * });
      * await parent.connect();
      */
-    constructor ( methods ) {
+    constructor ( methods, properties = {} ) {
 	this.methods			= methods;
+	this.properties			= properties;
+	
 	this.listener			= new Postmate.Model({
 	    "exec": async ( data ) => {
 		const [msg_id, method, args] = data;
@@ -329,21 +340,14 @@ class ParentAPI {
 		    return this.msg_bus.emit("response", [ msg_id, new Error("Method '" + method + "' is not a function. Found type '" + typeof fn + "'") ]);
 		}
 		
-		const resp		= await fn.apply( this.methods, args );
+		const resp		= await fn.apply( this.properties, args );
 		
 		this.msg_bus.emit("response", [ msg_id, resp ]);
 	    },
-	    "set_attr": async ( data ) => {
+	    "prop": async ( data ) => {
 		const [msg_id, key, value] = data;
 
-		const existing_value	= this.methods[ key ];
-
-		if ( typeof existing_value === "function" ) {
-		    log.error("Cannot overwrite '"+ key +"' because it is a function");
-		    return this.msg_bus.emit("response", [ msg_id, new Error("Cannot overwrite '" + key + "' because it is a function") ]);
-		}
-		
-		this.methods[ key ]	= value;
+		this.properties[ key ]	= value;
 		
 		this.msg_bus.emit("response", [ msg_id, true ]);
 	    }
