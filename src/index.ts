@@ -306,13 +306,13 @@ class ParentAPI {
      * 
      * @class ParentAPI
      * 
-     * @param {object} methods      - Functions that are available for the parent to call.
-     * @param {object} properties   - Properties to memorize in the instance for later use, optional
+     * @param {object} methods		- Functions that are available for the parent to call.
+     * @param {object} properties	- Properties to memorize in the instance for later use, optional
      * 
-     * @prop {promise} listener     - Promise that is waiting for parent to connect
-     * @prop {object} msg_bus       - Postmate instance
-     * @prop {object} methods       - Method storage
-     * @prop {object} properties    - Set properties storage
+     * @prop {promise} listener		- Promise that is waiting for parent to connect
+     * @prop {object} msg_bus		- Postmate instance
+     * @prop {object} methods		- Method storage
+     * @prop {object} properties	- Set properties storage
      * 
      * @example
      * const parent = new ParentAPI({
