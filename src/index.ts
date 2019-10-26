@@ -66,7 +66,7 @@ const COMB = {
     },
     
     /**
-     * Insert an iframe (poinging at the given URL) into the `document.body` and wait for COMB to
+     * Insert an iframe (pointing at the given URL) into the `document.body` and wait for COMB to
      * connect.
      * 
      * @async
@@ -252,14 +252,14 @@ class ChildAPI {
     }
 
     /**
-     * Set a property on the child instance and wait for the confirmation so that it can be
-     * referenced in the future by another method.
+     * Set a property on the child instance and wait for the confirmation. Properties set that way 
+     * can be accessed as properties of `this` in the functions passed via listen() to the parentAPI.
      * 
      * Essentially, it is a shortcut to remember some state instead of having to write a method to
      * remember some state.  Example `child.set("development_mode", true)` vs
      * `child.call("setDevelopmentMode", true)`.  The latter requires you to define
      * `setDevelopmentMode` on the child model where the former does not require any
-     * preconfiguration.
+     * pre-configuration.
      * 
      * @async
      * 
@@ -306,12 +306,13 @@ class ParentAPI {
      * 
      * @class ParentAPI
      * 
-     * @param {object} methods		- Functions that are available for the parent to call.
+     * @param {object} methods      - Functions that are available for the parent to call.
+     * @param {object} properties   - Properties to memorize in the instance for later use, optional
      * 
-     * @prop {promise} listener		- Promise that is waiting for parent to connect
-     * @prop {object} msg_bus		- Postmate instance
-     * @prop {object} methods		- Method and set properties storage
-     * @prop {object} methods		- Method and set properties storage
+     * @prop {promise} listener     - Promise that is waiting for parent to connect
+     * @prop {object} msg_bus       - Postmate instance
+     * @prop {object} methods       - Method storage
+     * @prop {object} properties    - Set properties storage
      * 
      * @example
      * const parent = new ParentAPI({
