@@ -1,9 +1,12 @@
 
 # Cross-origin Message Bus (COMB)
 
+<<<<<<< HEAD
 COMB is a library that facilitates the calls between the parent window (hApp UI) and the iframe
 (Chaperone).
 
+=======
+>>>>>>> Rename chaperon -> chaperone
 Used by `Holo Chaperone` and `Holo Hosting Web SDK`.
 
 ## Architecture
@@ -54,7 +57,7 @@ Both the parent window and iFrame must load COMB.
 
 ### API
 
-[API Reference](https://holo-host.github.io/chaperon/comb/docs/module-COMB.html)
+[API Reference](https://holo-host.github.io/chaperone/comb/docs/module-COMB.html)
 
 ## Features
 

@@ -38,7 +38,7 @@ clean-docs:
 
 static-servers:
 	cd ./html/happ/; python3 -m http.server 8001 &
-	cd ./html/chaperon/; python3 -m http.server 8002
+	cd ./html/chaperone/; python3 -m http.server 8002
 
 CURRENT_BRANCH = $(shell git branch | grep \* | cut -d ' ' -f2)
 publish-docs:

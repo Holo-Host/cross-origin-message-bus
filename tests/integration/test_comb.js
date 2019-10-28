@@ -36,7 +36,7 @@ describe("Testing COMB", function() {
 	log.debug("Setup config: %s", setup.ports );
 
     	happ_host			= `http://localhost:${setup.ports.happ}`;
-    	chap_host			= `http://localhost:${setup.ports.chaperon}`;
+    	chap_host			= `http://localhost:${setup.ports.chaperone}`;
     });
 
     after("Close servers and browser", async () => {
@@ -45,7 +45,7 @@ describe("Testing COMB", function() {
 	await setup.close();
     });
 	
-    it("should insert Chaperon iframe into hApp window", async function () {
+    it("should insert Chaperone iframe into hApp window", async function () {
 	const happ_url			= `${happ_host}/index.html`
 	const chap_url			= `${chap_host}/index.html`
 

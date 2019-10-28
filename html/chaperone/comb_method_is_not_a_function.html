@@ -1,19 +1,14 @@
 
 <script src="/comb/holo_hosting_comb.js"></script>
 
-<h1>Chaperon!</h1>
+<h1>Chaperone!</h1>
 
 <script type="text/javascript">
     (async function () {
 	try {
 	    COMB.debug();
 	    const parent	= await COMB.listen({
-		"test": async function ( ...args ) {
-		    return "Hello World: " + JSON.stringify(args);
-		},
-		"test_synchronous": function () {
-		    return "Hello World";
-		},
+		"not_a_function": {},
 	    });
 	} catch ( err ) {
 	    console.error( String(err) );

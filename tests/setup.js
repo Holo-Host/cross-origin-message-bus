@@ -56,16 +56,16 @@ function async_wrapper ( fn ) {
 
 function main () {
     const happ_server			= create_server( "./html/happ",		HAPP_PORT );
-    const chap_server			= create_server( "./html/chaperon",	CHAP_PORT );
+    const chap_server			= create_server( "./html/chaperone",	CHAP_PORT );
 
     return {
 	"servers": {
-	    "happ":	happ_server,
-	    "chaperon":	chap_server,
+	    "happ":		happ_server,
+	    "chaperone":	chap_server,
 	},
 	"ports": {
-	    "happ":	HAPP_PORT,
-	    "chaperon":	CHAP_PORT,
+	    "happ":		HAPP_PORT,
+	    "chaperone":	CHAP_PORT,
 	},
 	"close": async function () {
 	    return await Promise.all([
