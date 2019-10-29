@@ -4,7 +4,7 @@ NAME			= holo_hosting_comb
 build/index.js:		src/index.ts
 	npm run compile
 
-dist/$(NAME).js:	build/index.js
+dist/$(NAME).js:	build/index.js webpack.config.js
 	npm run bundle
 
 docs/index.html:	build/index.js
