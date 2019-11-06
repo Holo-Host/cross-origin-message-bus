@@ -42,7 +42,9 @@ static-servers:
 
 CURRENT_BRANCH = $(shell git branch | grep \* | cut -d ' ' -f2)
 publish-docs:
+	@echo "\nBuilding COMB docs"
 	make docs
 	ln -s docs v$$( cat package.json | jq -r .version )
+	@echo "\nAdding COMB docs..."
 	git add -f docs
 	git add v$$( cat package.json | jq -r .version )
