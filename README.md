@@ -1,13 +1,21 @@
 
 # Cross-origin Message Bus (COMB)
 
-<<<<<<< HEAD
+![](https://img.shields.io/maintenance/last%20update%202019-11/2019?style=flat-square)
+![](https://img.shields.io/badge/version-0.1.0-yellow?style=flat-square)
+
 COMB is a library that facilitates the calls between the parent window (hApp UI) and the iframe
 (Chaperone).
 
-=======
->>>>>>> Rename chaperon -> chaperone
-Used by `Holo Chaperone` and `Holo Hosting Web SDK`.
+Used between `Holo Chaperone` and `Holo Hosting Web SDK`.
+
+## Release ![](https://img.shields.io/npm/v/@holo-host/comb/latest?style=flat-square)
+Release source - https://github.com/Holo-Host/chaperone/tree/master/comb/
+
+> **NOTE:** Package has not been released yet.  The default import needs to work for Node using
+> `require('@holo-host/comb')`, but currently it is built for web.  This needs to be fixed before it
+> can be released.
+
 
 ## Architecture
 
@@ -15,6 +23,16 @@ COMB is designed to make an iFrame feel like a script.  With this in mind, the e
 the parent window wants to operate the iFrame, not vice-versa.  The purpose of using an iFrame
 instead of a script will usually be for isolation and/or security.  The iFrame does not trust the
 parent window, but requires input from the parent window to know what to do.
+
+**Features**
+- Parent/Child communication line
+- Promise wrappers
+- Round trip method request
+- Restrict domains
+
+### API
+
+[API Reference](https://holo-host.github.io/chaperone/comb/docs/module-COMB.html)
 
 ### Example Usage
 
@@ -55,16 +73,6 @@ Both the parent window and iFrame must load COMB.
 </script>
 ```
 
-### API
-
-[API Reference](https://holo-host.github.io/chaperone/comb/docs/module-COMB.html)
-
-## Features
-
-- Parent/Child communication line
-- Promise wrappers
-- Round trip method request
-- Restrict domains
 
 ## Contributors
 
@@ -74,8 +82,8 @@ We use `Postmate` to set up a message tunnel between the parent and child frames
 `Parent` and `Child` classes wrap the communication tunnel in a more useful `request/response` type
 API.
 
-**Development Environment Requires (instead of using nix-shell)**
-- Node.js 12
+**Development environment as of 2019/11**
+- Node.js `12`
 
 **Project employs**
 - Typescript
@@ -109,8 +117,6 @@ The web distribution is bundled with Webpack.  Run `npm run bundle` or `make dis
 ```bash
 npm test
 ```
-
-**Context**
 
 #### Unit tests
 Unit tests are not written because nearly all the complexity is in the integration tests.
