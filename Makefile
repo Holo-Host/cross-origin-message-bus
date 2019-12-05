@@ -1,6 +1,9 @@
 
 NAME			= holo_hosting_comb
 
+node_modules:
+	npm install
+
 build/index.js:		src/index.ts
 	npm run compile
 
@@ -13,9 +16,9 @@ docs/index.html:	build/index.js
 
 .PHONY:		src build dist docs docs-watch dist-watch
 
-build:			build/index.js
-dist:			dist/$(NAME).js
-docs:			docs/index.html
+build:			node_modules build/index.js
+dist:			node_modules dist/$(NAME).js
+docs:			node_modules docs/index.html
 
 MOCHA_OPTS	= --timeout 5000
 
