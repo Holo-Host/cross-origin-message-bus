@@ -1,21 +1,12 @@
+![](https://img.shields.io/npm/v/@holo-host/comb/latest?style=flat-square)
 
 # Cross-origin Message Bus (COMB)
-
-![](https://img.shields.io/maintenance/last%20update%202019-11/2019?style=flat-square)
-![](https://img.shields.io/badge/version-0.1.0-yellow?style=flat-square)
 
 COMB is a library that facilitates the calls between the parent window (hApp UI) and the iframe
 (Chaperone).
 
-Used between `Holo Chaperone` and `Holo Hosting Web SDK`.
-
-## Release ![](https://img.shields.io/npm/v/@holo-host/comb/latest?style=flat-square)
-Release source - https://github.com/Holo-Host/chaperone/tree/master/comb/
-
-> **NOTE:** Package has not been released yet.  The default import needs to work for Node using
-> `require('@holo-host/comb')`, but currently it is built for web.  This needs to be fixed before it
-> can be released.
-
+Used between [Holo Chaperone](https://github.com/Holo-Host/chaperone/tree/develop) and `Holo Hosting
+Web SDK`.
 
 ## Architecture
 
