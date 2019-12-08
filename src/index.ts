@@ -1,12 +1,7 @@
-import { logging }			from '@holo-host/service-worker-logger';
-
 import Postmate				from 'postmate';
 
 import async_with_timeout		from './async_with_timeout';
 import { TimeoutError }			from './async_with_timeout';
-
-const log				= logging.getLogger('COMB');
-log.setLevel('error');
 
 
 /**
@@ -62,7 +57,6 @@ const COMB = {
      */
     debug ( level = 'debug' ) {
 	Postmate.debug			= true;
-	log.setLevel( level );
     },
     
     /**
@@ -152,7 +146,7 @@ class ChildAPI {
 
 	this.class_name			= "comb-frame-" + ChildAPI.frame_count++;
 	this.handshake			= async_with_timeout(async () => {
-		log.info("Init Postmate handshake");
+		// log.info("Init Postmate handshake");
 		const handshake		= new Postmate({
 		    "container": document.body,
 		    "url": this.url,
@@ -160,10 +154,10 @@ class ChildAPI {
 		});
 
 		const iframe		= document.querySelector('iframe.' + this.class_name);
-		log.debug("Listening for iFrame load event", iframe );
+		// log.debug("Listening for iFrame load event", iframe );
 		
 		iframe['contentWindow'].addEventListener("domcontentloaded", () => {
-		    log.debug("iFrame content has loaded");
+		    // log.debug("iFrame content has loaded");
 		    this.loaded		= true;
 		});
 
@@ -191,11 +185,11 @@ class ChildAPI {
 	} catch ( err ) {
 	    if ( err.name === "TimeoutError" ) {
 		if ( this.loaded ) {
-		    log.error("iFrame loaded but could not communicate with COMB");
+		    // log.error("iFrame loaded but could not communicate with COMB");
 		    throw new TimeoutError("Failed to complete COMB handshake", err.timeout );
 		}
 		else {
-		    log.error("iFrame did not trigger load event");
+		    // log.error("iFrame did not trigger load event");
 		    throw new TimeoutError("Failed to load iFrame", err.timeout );
 		}
 	    }
@@ -203,11 +197,11 @@ class ChildAPI {
 		throw err;
 	}
 	
-	log.info("Finished handshake");
+	// log.info("Finished handshake");
 	
 	child.on('response', ( data ) => {
 	    let [k,v]			= data;
-	    log.info("Received response for msg_id:", k );
+	    // log.info("Received response for msg_id:", k );
 
 	    const [f,r]			= this.responses[ k ];
 
@@ -240,7 +234,7 @@ class ChildAPI {
 	let msg_id			= this.msg_count++;
 	
 	this.msg_bus.call( method, [ msg_id, name, data ] );
-	log.info("Sent request with msg_id:", msg_id );
+	// log.info("Sent request with msg_id:", msg_id );
 	
 	return async_with_timeout(async () => {
 	    const request		= new Promise((f,r) => {
@@ -333,11 +327,11 @@ class ParentAPI {
 		const fn		= this.methods[ method ];
 		
 		if ( fn === undefined ) {
-		    log.error("Method does not exist", method );
+		    // log.error("Method does not exist", method );
 		    return this.msg_bus.emit("response", [ msg_id, new Error("Method '"+ method +"' does not exist") ]);
 		}
 		if ( typeof fn !== "function" ) {
-		    log.error("Method is not a function: type", typeof fn );
+		    // log.error("Method is not a function: type", typeof fn );
 		    return this.msg_bus.emit("response", [ msg_id, new Error("Method '" + method + "' is not a function. Found type '" + typeof fn + "'") ]);
 		}
 		

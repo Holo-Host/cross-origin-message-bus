@@ -1,8 +1,9 @@
 {
   "name": "@holo-host/comb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cross-origin message bus (COMB) facilitates communication between a hApp UI and Holo Chaperone",
-  "main": "dist/holo_hosting_comb.js",
+  "main": "build/index.js",
+  "module": "dist/holo_hosting_comb.js",
   "scripts": {
     "build": "npm run compile && npm run bundle",
     "compile": "tsc --esModuleInterop --lib es2015,dom --outDir ./build ./src/index.ts",
@@ -18,8 +19,12 @@
     "type": "git",
     "url": "https://github.com/Holo-Host/chaperone/"
   },
+  "files": [
+    "README.md",
+    "dist/holo_hosting_comb.js",
+    "build/*"
+  ],
   "dependencies": {
-    "@holo-host/service-worker-logger": "^0.1.0",
     "postmate": "^1.5.1"
   },
   "devDependencies": {
