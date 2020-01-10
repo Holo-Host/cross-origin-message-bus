@@ -3,7 +3,6 @@
   "version": "0.1.2",
   "description": "Cross-origin message bus (COMB) facilitates communication between a hApp UI and Holo Chaperone",
   "main": "build/index.js",
-  "module": "dist/holo_hosting_comb.js",
   "scripts": {
     "build": "npm run compile && npm run bundle",
     "compile": "tsc --esModuleInterop --lib es2015,dom --outDir ./build ./src/index.ts",
@@ -21,7 +20,6 @@
   },
   "files": [
     "README.md",
-    "dist/holo_hosting_comb.js",
     "build/*"
   ],
   "dependencies": {
