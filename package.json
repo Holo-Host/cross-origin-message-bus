@@ -9,7 +9,7 @@
     "bundle": "npx webpack --mode production --output-filename holo_hosting_comb.js ./build/index.js",
     "test": "mocha --recursive --timeout 5000 ./tests/"
   },
-  "author": "Holo Inc.",
+  "author": "Holo Ltd.",
   "contributors": [
     "Matthew Brisebois <matthew.brisebois@holo.host>"
   ],
