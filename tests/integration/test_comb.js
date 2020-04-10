@@ -122,7 +122,7 @@ describe("Testing COMB", function() {
 	try {
 	    const result		= await page.evaluate(async function ()  {
 		try {
-		    await COMB.connect( "http://localhost:55555" );
+		    await COMB.connect( "http://localhost:55555", 500 );
 		} catch ( err ) {
 		    console.log( "Error message value:", err.message );
 		    return {
@@ -149,7 +149,7 @@ describe("Testing COMB", function() {
 	try {
 	    const result		= await page.evaluate(async function ( frame_url )  {
 		try {
-		    await COMB.connect( frame_url );
+		    await COMB.connect( frame_url, 500 );
 		} catch ( err ) {
 		    console.log( "Error message value:", err.message );
 		    return {

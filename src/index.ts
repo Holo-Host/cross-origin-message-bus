@@ -73,8 +73,8 @@ const COMB = {
      * @example
      * const child = await COMB.connect( "http://localhost:8002" );
      */
-    async connect ( url ) {
-	const child			= new ChildAPI( url );
+    async connect ( url, timeout ) {
+	const child			= new ChildAPI( url, timeout );
 	await child.connect();
 	return child;
     },
@@ -138,7 +138,7 @@ class ChildAPI {
      * await child.set("mode", mode );
      * let response = await child.run("signIn");
      */
-    constructor ( url ) {
+    constructor ( url, timeout = 5_000 ) {
 	this.url			= url;
 	this.msg_count			= 0;
 	this.responses			= {};
@@ -146,24 +146,23 @@ class ChildAPI {
 
 	this.class_name			= "comb-frame-" + ChildAPI.frame_count++;
 	this.handshake			= async_with_timeout(async () => {
-		// log.info("Init Postmate handshake");
-		const handshake		= new Postmate({
-		    "container": document.body,
-		    "url": this.url,
-		    "classListArray": [ this.class_name ],
-		});
+	    // log.info("Init Postmate handshake");
+	    const handshake		= new Postmate({
+		"container": document.body,
+		"url": this.url,
+		"classListArray": [ this.class_name ],
+	    });
 
-		const iframe		= document.querySelector('iframe.' + this.class_name);
-		// log.debug("Listening for iFrame load event", iframe );
-		
-		iframe['contentWindow'].addEventListener("domcontentloaded", () => {
-		    // log.debug("iFrame content has loaded");
-		    this.loaded		= true;
-		});
+	    const iframe		= document.querySelector('iframe.' + this.class_name);
+	    // log.debug("Listening for iFrame load event", iframe );
 
-		return await handshake;
-	    }, 1000 );
-	
+	    iframe['contentWindow'].addEventListener("domcontentloaded", () => {
+		// log.debug("iFrame content has loaded");
+		this.loaded		= true;
+	    });
+
+	    return await handshake;
+	}, timeout );
     }
 
     /**
