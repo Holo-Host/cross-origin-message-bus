@@ -1,6 +1,6 @@
 {
   "name": "@holo-host/comb",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Cross-origin message bus (COMB) facilitates communication between a hApp UI and Holo Chaperone",
   "main": "build/index.js",
   "scripts": {
