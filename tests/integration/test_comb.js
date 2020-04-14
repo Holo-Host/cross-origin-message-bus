@@ -193,6 +193,24 @@ describe("Testing COMB", function() {
 	}
     });
 	
+    it("should not timeout because of long call", async function () {
+	const happ_url			= `${happ_host}/index.html`
+	const pass_url			= `${chap_host}/comb_method_long_wait.html`
+
+	const page			= await create_page( happ_url );
+
+	try {
+	    const result		= await page.evaluate(async function ( frame_url )  {
+		const child		= await COMB.connect( frame_url );
+		return await child.call("long_call");
+	    }, pass_url );
+
+	    expect( result		).to.equal( "Hello World" );
+	} finally {
+	    await page.close();
+	}
+    });
+
     it("should throw error because method does not exist", async function () {
 	const happ_url			= `${happ_host}/index.html`
 	const fail_url			= `${chap_host}/comb_method_does_not_exist.html`

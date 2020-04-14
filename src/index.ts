@@ -229,7 +229,7 @@ class ChildAPI {
      * 
      * @return {*} Response from child
      */
-    private request ( method, name, data ) {
+    private request ( method, name, data, timeout = 1000 ) {
 	let msg_id			= this.msg_count++;
 	
 	this.msg_bus.call( method, [ msg_id, name, data ] );
@@ -241,7 +241,7 @@ class ChildAPI {
 	    });
 	    
 	    return await request;
-	}, 1000 );
+	}, timeout );
     }
 
     /**
@@ -283,6 +283,10 @@ class ChildAPI {
      */
     async run ( method, ...args ) {
 	return await this.request( "exec", method, args );
+    }
+
+    async call ( method, ...args ) {
+	return await this.request( "exec", method, args, 84000000 );
     }
 }
 
