@@ -51,7 +51,7 @@ class PageTestUtils {
 }
 
 describe("Testing COMB", function() {
-	let setup, happ_host, chap_host, happ_url, chap_url, page;
+	let setup, happ_host, chap_host, happ_url, chap_url, page, pageTestUtils;
 	
     before("Start servers and browser", async () => {
 	setup				= http_servers();
@@ -62,18 +62,19 @@ describe("Testing COMB", function() {
     	happ_host			= `http://localhost:${setup.ports.happ}`;
     	chap_host			= `http://localhost:${setup.ports.chaperone}`;
 
-		happ_url			= `${happ_host}/index.html`
-		chap_url			= `${chap_host}/index.html`
+    	happ_url			= `${happ_host}/index.html`
+    	chap_url			= `${chap_host}/index.html`
 	});
 
 	beforeEach(async() => {
-		page			= await create_page( happ_url );
-		console.log('\npage created...');
+		page		= await create_page( happ_url );
+		pageTestUtils		= new PageTestUtils(page)
+		
+		pageTestUtils.returnPageError()
 	});
 
-	afterEach(async() => {
+    afterEach(async() => {
 		await page.close();
-		console.log('page closed...\n');
 	})
 
     after("Close servers and browser", async () => {
@@ -122,12 +123,8 @@ describe("Testing COMB", function() {
 	}
     });
 	
-	it("should call method on child and return error", async function () {	
-		const pageTestUtils		= new PageTestUtils(page)
-		
-		pageTestUtils.returnPageError()
-		pageTestUtils.describeJsHandleLogs()
-		
+	it("should call method on child and return error", async function () {
+    	pageTestUtils.describeJsHandleLogs()
 	let answer;
 	try {
 		answer			= await page.evaluate(async function ( frame_url )  {
