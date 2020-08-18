@@ -27,19 +27,19 @@ class PageTestUtils {
 	constructor( page ) {
 	this.returnPageError			= () => page.on('pageerror', async error => {
 		if (error instanceof Error) {
-			log.silly( error.message );
+		log.silly( error.message );
 		}
 		else 
-		log.silly( error )
+		log.silly( error );
 	  });
 
 	this.describeJsHandleLogs			= () => page.on('console', async msg => {
 		const args = await Promise.all(msg.args().map(arg => this.describeJsHandle(arg)))
-			.catch(error => console.log(error.message));
+		.catch(error => console.log(error.message));
 		console.log(...args);
 	  });
 
-	this.describeJsHandle				= ( jsHandle ) => {
+	this.describeJsHandle			= ( jsHandle ) => {
 		return jsHandle.executionContext().evaluate(arg => {
 			if (arg instanceof Error)
 				return arg.message;
@@ -75,7 +75,7 @@ describe("Testing COMB", function() {
 
     	const page			= await create_page( happ_url );
 
-	try {
+    	try {
 	    await page.evaluate(async function ( frame_url )  {
 		const child		= await COMB.connect( frame_url );
 	    }, chap_url );
