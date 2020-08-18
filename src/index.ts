@@ -199,21 +199,19 @@ class ChildAPI {
 	// log.info("Finished handshake");
 	
 	child.on('response', ( data ) =>     {
+        // console.log('RESPONSE :  ', data);
         let [k,v]			= data;
 	    // log.info("Received response for msg_id:", k );
 
 	    const [f,r]			= this.responses[ k ];
-        
-	    if ( v instanceof Error ) {
-            console.log('ERROR LOG... !!!!!!!!',  v)
-            delete this.responses[ k ];
-            return v
-            
-        }
-	    else {
+
+
+	    if ( v instanceof Error )
+            r( v );
+	    else
             f( v );
-            delete this.responses[ k ];
-        }
+        
+        delete this.responses[ k ];
 	});
 
 	this.msg_bus			= child;
@@ -342,10 +340,6 @@ class ParentAPI {
         }
         
 		const resp		= await fn.apply( this.properties, args );
-        
-        if ( resp instanceof Error ) {
-            return this.msg_bus.emit("response", [ msg_id, resp ]);
-        }
         
 		this.msg_bus.emit("response", [ msg_id, resp ]);
 	    },

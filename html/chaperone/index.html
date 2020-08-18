@@ -5,6 +5,13 @@
 
 <script type="text/javascript">
     (async function () {
+
+		function HolochainTestError(message) {
+			this.name = "HolochainTestError";
+			this.message = (message || "");
+		}
+		HolochainTestError.prototype = Error.prototype;
+
 	try {
 	    COMB.debug();
 	    const parent	= await COMB.listen({
@@ -15,11 +22,10 @@
 		    return "Hello World";
 		},
 		"test_error": function ( ...args ) {
-			return new Error("Method did not succeed\n" + JSON.stringify(args));
+			return new HolochainTestError("Method did not succeed\n" + JSON.stringify(args));
 		},
 		"test_synchronous_error": function () {
-			console.log("Called test_sync");
-			return new Error("Method did not succeed");
+			return new HolochainTestError("Method did not succeed");
 		}
 		});
 	} catch ( err ) {
