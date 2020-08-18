@@ -24,7 +24,7 @@ function async_with_timeout ( fn, timeout = 2000 ) : Promise<any> {
 	}, timeout);
 
 	try {
-		const result		= await fn();
+	    const result		= await fn();
 	    f( result );
 	} catch ( err ) {
 	    r( err );

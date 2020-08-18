@@ -7,7 +7,6 @@ const expect				= require('chai').expect;
 const puppeteer				= require('puppeteer');
 
 const http_servers			= require('../setup.js');
-const { beforeEach, afterEach } = require('mocha');
 
 let browser;
 
@@ -62,13 +61,13 @@ describe("Testing COMB", function() {
 
     	happ_host			= `http://localhost:${setup.ports.happ}`;
     	chap_host			= `http://localhost:${setup.ports.chaperone}`;
-	});
-	
+    });
+
     after("Close servers and browser", async () => {
 	log.debug("Shutdown cleanly...");
 	await browser.close();
 	await setup.close();
-	});
+    });
 	
     it("should insert Chaperone iframe into hApp window", async function () {
 	const happ_url			= `${happ_host}/index.html`
@@ -90,9 +89,9 @@ describe("Testing COMB", function() {
     	    const chap_frame		= frames[0];
 
     	    expect( frames[0].url()	).to.equal( chap_url );
-	} finally {
+    	} finally {
 	    await page.close();
-	}
+    	}
     });
 	
     it("should call method on child and await response", async function () {
@@ -119,7 +118,7 @@ describe("Testing COMB", function() {
 	} finally {
 	    await page.close();
 	}
-	});
+    });
 	
 	it("should call method on child and return error", async function () {
 	const happ_url			= `${happ_host}/index.html`
