@@ -24,11 +24,16 @@ function async_with_timeout ( fn, timeout = 2000 ) : Promise<any> {
 	}, timeout);
 
 	try {
-	    const result		= await fn();
+		const result		= await fn();
+		console.log('----------- fn : ', fn);
+		console.log('RESULT : ', result);
 	    f( result );
 	} catch ( err ) {
+		console.log('ERROR ; ', err);
 	    r( err );
 	} finally {
+		console.log('clearing TIMEOUT....');
+
 	    clearTimeout( to_id );
 	}
     });

@@ -14,7 +14,14 @@
 		"test_synchronous": function () {
 		    return "Hello World";
 		},
-	    });
+		"test_error": function ( ...args ) {
+			return new Error("Method did not succeed\n" + JSON.stringify(args));
+		},
+		"test_synchronous_error": function () {
+			console.log("Called test_sync");
+			return new Error("Method did not succeed");
+		}
+		});
 	} catch ( err ) {
 	    console.error( String(err) );
 	}

@@ -198,18 +198,22 @@ class ChildAPI {
 	
 	// log.info("Finished handshake");
 	
-	child.on('response', ( data ) => {
-	    let [k,v]			= data;
+	child.on('response', ( data ) =>     {
+        let [k,v]			= data;
 	    // log.info("Received response for msg_id:", k );
 
 	    const [f,r]			= this.responses[ k ];
-
-	    if ( v instanceof Error )
-		r( v );
-	    else
-		f( v );
-
-	    delete this.responses[ k ];
+        
+	    if ( v instanceof Error ) {
+            console.log('ERROR LOG... !!!!!!!!',  v)
+            delete this.responses[ k ];
+            return v
+            
+        }
+	    else {
+            f( v );
+            delete this.responses[ k ];
+        }
 	});
 
 	this.msg_bus			= child;
@@ -229,12 +233,12 @@ class ChildAPI {
      * 
      * @return {*} Response from child
      */
-    private request ( method, name, data, timeout = 1000 ) {
+    private request ( method, name, data, timeout = 2000 ) {
 	let msg_id			= this.msg_count++;
 	
 	this.msg_bus.call( method, [ msg_id, name, data ] );
 	// log.info("Sent request with msg_id:", msg_id );
-	
+        
 	return async_with_timeout(async () => {
 	    const request		= new Promise((f,r) => {
 		this.responses[msg_id]	= [f,r];
@@ -325,8 +329,7 @@ class ParentAPI {
 	
 	this.listener			= new Postmate.Model({
 	    "exec": async ( data ) => {
-		const [msg_id, method, args] = data;
-
+        const [msg_id, method, args] = data;
 		const fn		= this.methods[ method ];
 		
 		if ( fn === undefined ) {
@@ -336,10 +339,14 @@ class ParentAPI {
 		if ( typeof fn !== "function" ) {
 		    // log.error("Method is not a function: type", typeof fn );
 		    return this.msg_bus.emit("response", [ msg_id, new Error("Method '" + method + "' is not a function. Found type '" + typeof fn + "'") ]);
-		}
-		
+        }
+        
 		const resp		= await fn.apply( this.properties, args );
-		
+        
+        if ( resp instanceof Error ) {
+            return this.msg_bus.emit("response", [ msg_id, resp ]);
+        }
+        
 		this.msg_bus.emit("response", [ msg_id, resp ]);
 	    },
 	    "prop": async ( data ) => {
