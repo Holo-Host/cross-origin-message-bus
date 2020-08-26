@@ -14,7 +14,7 @@ async function create_page ( url ) {
     const page				= await browser.newPage();
     
     page.on("console", async ( msg ) => {
-    	log.silly("From puppeteer: console.log( %s )", msg.text() );
+	log.silly("From puppeteer: console.log( %s )", msg.text() );
     });
     
     log.info("Go to: %s", url );
@@ -23,85 +23,85 @@ async function create_page ( url ) {
     return page;
 }
 
-class PageTestUtils {  
-	constructor( page ) {
-	this.returnPageError			= () => page.on('pageerror', async error => {
-		if (error instanceof Error) {
+class PageTestUtils {
+    constructor( page ) {
+	this.returnPageError		= () => page.on('pageerror', async error => {
+	    if (error instanceof Error) {
 		log.silly( error.message );
-		}
-		else 
+	    }
+	    else
 		log.silly( error );
-	  });
+	});
 
-	this.describeJsHandleLogs			= () => page.on('console', async msg => {
-		const args = await Promise.all(msg.args().map(arg => this.describeJsHandle( arg )))
-		.catch(error => console.log( error.message ));
-		console.log( ...args );
-	  });
+	this.describeJsHandleLogs	= () => page.on('console', async msg => {
+	    const args = await Promise.all(msg.args().map(arg => this.describeJsHandle( arg )))
+		  .catch(error => console.log( error.message ));
+	    console.log( ...args );
+	});
 
-	this.describeJsHandle			= ( jsHandle ) => {
-		return jsHandle.executionContext().evaluate(arg => {
-			if (arg instanceof Error)
-				return arg.message;
-			else 
-				return arg;
-		}, jsHandle);
+	this.describeJsHandle		= ( jsHandle ) => {
+	    return jsHandle.executionContext().evaluate(arg => {
+		if (arg instanceof Error)
+		    return arg.message;
+		else
+		    return arg;
+	    }, jsHandle);
 	};
-	}
+    }
 }
 
 describe("Testing COMB", function() {
-	let setup, happ_host, chap_host, happ_url, chap_url, page, pageTestUtils;
-	
+    let setup, happ_host, chap_host, happ_url, chap_url, page, pageTestUtils;
+
     before("Start servers and browser", async () => {
 	setup				= http_servers();
 	browser				= await puppeteer.launch();
-	
+
 	log.debug("Setup config: %s", setup.ports );
 
-    	happ_host			= `http://localhost:${setup.ports.happ}`;
-    	chap_host			= `http://localhost:${setup.ports.chaperone}`;
+	happ_host			= `http://localhost:${setup.ports.happ}`;
+	chap_host			= `http://localhost:${setup.ports.chaperone}`;
 
-    	happ_url			= `${happ_host}/index.html`
-    	chap_url			= `${chap_host}/index.html`
-	});
+	happ_url			= `${happ_host}/index.html`
+	chap_url			= `${chap_host}/index.html`
+    });
 
-	beforeEach(async() => {
-		page		= await create_page( happ_url );
-		pageTestUtils		= new PageTestUtils(page)
-		
-		pageTestUtils.returnPageError()
-	});
+    beforeEach(async() => {
+	page				= await create_page( happ_url );
+	pageTestUtils			= new PageTestUtils(page)
+
+	pageTestUtils.returnPageError()
+    });
 
     afterEach(async() => {
-		await page.close();
-	})
+	await page.close();
+    })
 
     after("Close servers and browser", async () => {
 	log.debug("Shutdown cleanly...");
 	await browser.close();
 	await setup.close();
     });
-	
+
     it("should insert Chaperone iframe into hApp window", async function () {
-    	try {
+	try {
 	    await page.evaluate(async function ( frame_url )  {
 		const child		= await COMB.connect( frame_url );
 	    }, chap_url );
 
-    	    const parent		= page.mainFrame();
-    	    const frames		= parent.childFrames();
-    	    log.debug("Frames: %s", frames.length );
+	    const parent		= page.mainFrame();
+	    const frames		= parent.childFrames();
+	    log.debug("Frames: %s", frames.length );
 
-    	    expect( frames.length	).to.equal( 1 );
-	    
-    	    const chap_frame		= frames[0];
+	    expect( frames.length	).to.equal( 1 );
 
-    	    expect( frames[0].url()	).to.equal( chap_url );
-    	} finally {
-    	}
+	    const chap_frame		= frames[0];
+
+	    expect( frames[0].url()	).to.equal( chap_url );
+	} finally {
+	}
     });
-	
+
     it("should call method on child and await response", async function () {
 	let answer;
 	try {
@@ -122,29 +122,30 @@ describe("Testing COMB", function() {
 	} finally {
 	}
     });
-	
-	it("should call method on child and return error", async function () {
-    	pageTestUtils.describeJsHandleLogs()
+
+    it("should call method on child and return error", async function () {
+	pageTestUtils.describeJsHandleLogs()
 	let answer;
 	try {
-		answer			= await page.evaluate(async function ( frame_url )  {
+	    answer			= await page.evaluate(async function ( frame_url )  {
 		window.child		= await COMB.connect( frame_url );
 		return await child.call("test_error", "counting", [1,2,3], 4 );
-		}, chap_url );
+	    }, chap_url );
 
-		expect( answer.name		).to.equal( "HolochainTestError" );
-		expect( answer.message		).to.equal( "Method did not succeed\n[\"counting\",[1,2,3],4]" );
-		
-		answer			= await page.evaluate(async function ( frame_url )  {
+	    expect( answer.name		).to.equal( "HolochainTestError" );
+	    expect( answer.message	).to.equal( "Method did not succeed\n[\"counting\",[1,2,3],4]" );
+
+
+	    answer			= await page.evaluate(async function ( frame_url )  {
 		window.child		= await COMB.connect( frame_url );
 		return await child.run("test_synchronous_error");
-		}, chap_url );
-		
-		expect( answer.name		).to.equal( "HolochainTestError" );
-		expect( answer.message		).to.equal( "Method did not succeed" );
+	    }, chap_url );
+
+	    expect( answer.name		).to.equal( "HolochainTestError" );
+	    expect( answer.message	).to.equal( "Method did not succeed" );
 	} finally {
 	}
-	});
+    });
 
     it("should set key/value on child and await confirmation", async function () {
 	try {
@@ -157,7 +158,7 @@ describe("Testing COMB", function() {
 	} finally {
 	}
     });
-	
+
     it("should timeout because of wrong frame URL", async function () {
 	try {
 	    const result		= await page.evaluate(async function ()  {
@@ -178,7 +179,7 @@ describe("Testing COMB", function() {
 	} finally {
 	}
     });
-	
+
     it("should timeout because COMB is not listening", async function () {
 	const fail_url			= `${chap_host}/comb_not_listening.html`
 	try {
@@ -199,7 +200,7 @@ describe("Testing COMB", function() {
 	} finally {
 	}
     });
-	
+
     it("should timeout because method didn't respond", async function () {
 	const fail_url			= `${chap_host}/comb_method_no_response.html`
 	try {
@@ -221,7 +222,7 @@ describe("Testing COMB", function() {
 	} finally {
 	}
     });
-	
+
     it("should not timeout because of long call", async function () {
 	const pass_url			= `${chap_host}/comb_method_long_wait.html`
 	try {
@@ -256,7 +257,7 @@ describe("Testing COMB", function() {
 	} finally {
 	}
     });
-	
+
     it("should throw error because method is not a function", async function () {
 	const fail_url			= `${chap_host}/comb_method_is_not_a_function.html`
 	try {
@@ -278,27 +279,27 @@ describe("Testing COMB", function() {
 	} finally {
 	}
     });
-	
+
     it("should not emit any console.log messages", async function () {
-	const no_debug_happ_url			= `${happ_host}/comb_no_debug.html`
-	const no_debug_chap_url			= `${chap_host}/comb_no_debug.html`
+	const no_debug_happ_url		= `${happ_host}/comb_no_debug.html`
+	const no_debug_chap_url		= `${chap_host}/comb_no_debug.html`
 
 	const newPage			= await browser.newPage();
-	
+
 	let no_logs			= true;
 	newPage.on("console", async ( msg ) => {
-    	    log.silly("From puppeteer: console.log( %s )", msg.text() );
+	    log.silly("From puppeteer: console.log( %s )", msg.text() );
 	    no_logs			= false;
 	});
-	
+
 	log.info("Go to: %s", no_debug_happ_url );
 	await newPage.goto( no_debug_happ_url, { "waitUntil": "networkidle0" } );
-	
+
 	try {
 	    newPage.on("console", async ( msg ) => {
-    		log.silly("From puppeteer: console.log( %s )", msg.text() );
+		log.silly("From puppeteer: console.log( %s )", msg.text() );
 	    });
-	    
+
 	    const answer		= await newPage.evaluate(async function ( frame_url )  {
 		const child		= await COMB.connect( frame_url );
 		return await child.run("test");
