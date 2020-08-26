@@ -25,7 +25,7 @@ async function create_page ( url ) {
 
 class PageTestUtils {  
 	constructor( page ) {
-	this.returnPageError			= () => page.on('pageerror', async error => {
+	this.logPageErrors			= () => page.on('pageerror', async error => {
 		if (error instanceof Error) {
 		log.silly( error.message );
 		}
@@ -70,7 +70,7 @@ describe("Testing COMB", function() {
 		page		= await create_page( happ_url );
 		pageTestUtils		= new PageTestUtils(page)
 		
-		pageTestUtils.returnPageError()
+		pageTestUtils.logPageErrors()
 	});
 
     afterEach(async() => {
