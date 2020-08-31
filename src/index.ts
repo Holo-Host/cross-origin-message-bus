@@ -229,7 +229,7 @@ class ChildAPI {
      * 
      * @return {*} Response from child
      */
-    private request ( method, name, data, timeout = 1000 ) {
+    private request ( method, name, data, timeout = 2000 ) {
 	let msg_id			= this.msg_count++;
 	
 	this.msg_bus.call( method, [ msg_id, name, data ] );
