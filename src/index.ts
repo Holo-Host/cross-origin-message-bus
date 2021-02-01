@@ -73,8 +73,8 @@ const COMB = {
    * @example
    * const child = await COMB.connect( "http://localhost:8002" );
    */
-  async connect(url, timeout) {
-    const child = new ChildAPI(url, timeout);
+  async connect(url, timeout, signalCb) {
+    const child = new ChildAPI(url, timeout, signalCb);
     await child.connect();
     return child;
   },
@@ -115,6 +115,7 @@ class ChildAPI {
   handshake: any;
   class_name: string;
   loaded: boolean;
+  signalCb: any;
 
   /**
    * Initialize a child frame using the given URL.
@@ -130,6 +131,7 @@ class ChildAPI {
    * @prop {promise} handshake	- Promise that is waiting for connection confirmation
    * @prop {string} class_name	- iFrame's unique class name
    * @prop {boolean} loaded		- Indicates if iFrame successfully loaded
+   * @prop {any} signalCb - A callback that's run when we receive a signal
    * 
    * @example
    * const child = new ChildAPI( url );
@@ -138,15 +140,18 @@ class ChildAPI {
    * await child.set("mode", mode );
    * let response = await child.run("signIn");
    */
-  constructor(url, timeout = 5_000) {
+  constructor(url, timeout = 5_000, signalCb) {
     this.url = url;
     this.msg_count = 0;
     this.responses = {};
     this.loaded = false;
 
+    this.signalCb = signalCb;
+
     this.class_name = "comb-frame-" + ChildAPI.frame_count++;
     this.handshake = async_with_timeout(async () => {
       // log.info("Init Postmate handshake");
+      Postmate.debug = true
       const handshake = new Postmate({
         "container": document.body,
         "url": this.url,
@@ -186,8 +191,7 @@ class ChildAPI {
         if (this.loaded) {
           // log.error("iFrame loaded but could not communicate with COMB");
           throw new TimeoutError("Failed to complete COMB handshake", err.timeout);
-        }
-        else {
+        } else {
           // log.error("iFrame did not trigger load event");
           throw new TimeoutError("Failed to load iFrame", err.timeout);
         }
@@ -211,6 +215,10 @@ class ChildAPI {
 
       delete this.responses[k];
     });
+
+    if (this.signalCb) {
+      child.on('signal', this.signalCb)
+    }
 
     this.msg_bus = child;
 
@@ -320,9 +328,11 @@ class ParentAPI {
    * await parent.connect();
    */
   constructor(methods, properties = {}) {
+
     this.methods = methods;
     this.properties = properties;
 
+    Postmate.debug = true
     this.listener = new Postmate.Model({
       "exec": async (data) => {
         const [msg_id, method, args] = data;
@@ -348,6 +358,9 @@ class ParentAPI {
         this.properties[key] = value;
 
         this.msg_bus.emit("response", [msg_id, true]);
+      },
+      "signal": async (data) => {
+        console.log('signal listener pow', data)
       }
     });
   }
@@ -367,10 +380,29 @@ class ParentAPI {
    * });
    * await parent.connect();
    */
-  async connect() {
+  async connect () {
     this.msg_bus = await this.listener;
 
     return this;
+  }
+
+    /**
+   * Wait for parent to connect.
+   * 
+   * @async
+   * 
+   * @param {object} signal		- Functions that are available for the parent to call.
+   * 
+   * @example
+   * const parent = new ParentAPI({
+   *     "hello": async function () {
+   *         return "Hello world";
+   *     }
+   * });
+   * await parent.sendSignal(signal);
+   */
+  async sendSignal (signal) {
+    this.msg_bus.emit('signal', signal)
   }
 
 }
