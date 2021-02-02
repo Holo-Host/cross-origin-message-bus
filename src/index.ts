@@ -358,9 +358,6 @@ class ParentAPI {
         this.properties[key] = value;
 
         this.msg_bus.emit("response", [msg_id, true]);
-      },
-      "signal": async (data) => {
-        console.log('signal listener pow', data)
       }
     });
   }
