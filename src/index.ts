@@ -151,7 +151,6 @@ class ChildAPI {
     this.class_name = "comb-frame-" + ChildAPI.frame_count++;
     this.handshake = async_with_timeout(async () => {
       // log.info("Init Postmate handshake");
-      Postmate.debug = true
       const handshake = new Postmate({
         "container": document.body,
         "url": this.url,
@@ -332,7 +331,6 @@ class ParentAPI {
     this.methods = methods;
     this.properties = properties;
 
-    Postmate.debug = true
     this.listener = new Postmate.Model({
       "exec": async (data) => {
         const [msg_id, method, args] = data;
@@ -384,11 +382,11 @@ class ParentAPI {
   }
 
     /**
-   * Wait for parent to connect.
+   * Send holochain conductor signal to parent.
    * 
    * @async
    * 
-   * @param {object} signal		- Functions that are available for the parent to call.
+   * @param {object} signal		- The signal
    * 
    * @example
    * const parent = new ParentAPI({
