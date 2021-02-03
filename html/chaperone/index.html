@@ -20,6 +20,9 @@
         "test_synchronous": function () {
           return "Hello World";
         },
+        "test_signal": function (signal) {
+          return parent.sendSignal(signal)
+        },
         "test_error": function (...args) {
           return new HolochainTestError("Method did not succeed\n" + JSON.stringify(args));
         },
