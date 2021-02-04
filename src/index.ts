@@ -122,16 +122,16 @@ class ChildAPI {
    * 
    * @class ChildAPI
    * 
-   * @param {string} url		- URL that is used as 'src' for the iframe
+   * @param {string} url - URL that is used as 'src' for the iframe
    * 
-   * @prop {string} url 		- iFrame URL
-   * @prop {number} msg_count		- Incrementing message ID
-   * @prop {object} responses		- Dictionary of request Promises waiting for their responses
-   * @prop {object} msg_bus		- Postmate instance
-   * @prop {promise} handshake	- Promise that is waiting for connection confirmation
-   * @prop {string} class_name	- iFrame's unique class name
-   * @prop {boolean} loaded		- Indicates if iFrame successfully loaded
-   * @prop {any} signalCb - A callback that's run when we receive a signal
+   * @prop {string} url         - iFrame URL
+   * @prop {number} msg_count   - Incrementing message ID
+   * @prop {object} responses   - Dictionary of request Promises waiting for their responses
+   * @prop {object} msg_bus     - Postmate instance
+   * @prop {promise} handshake  - Promise that is waiting for connection confirmation
+   * @prop {string} class_name  - iFrame's unique class name
+   * @prop {boolean} loaded     - Indicates if iFrame successfully loaded
+   * @prop {any} signalCb       - A callback that's run when we receive a signal
    * 
    * @example
    * const child = new ChildAPI( url );
@@ -231,8 +231,8 @@ class ChildAPI {
    * @private
    * 
    * @param {string} method		- Internally consistent Postmate method
-   * @param {string} name		- Function name or property name
-   * @param {*} data			- Variable input that is handled by child API
+   * @param {string} name	  	- Function name or property name
+   * @param {*} data			    - Variable input that is handled by child API
    * 
    * @return {*} Response from child
    */
@@ -264,7 +264,7 @@ class ChildAPI {
    * @async
    * 
    * @param {string} key		- Property name
-   * @param {*} value			- Property value
+   * @param {*} value		  	- Property value
    * 
    * @return {boolean} Success status
    * 
@@ -314,8 +314,8 @@ class ParentAPI {
    * @param {object} properties	- Properties to memorize in the instance for later use, optional
    * 
    * @prop {promise} listener		- Promise that is waiting for parent to connect
-   * @prop {object} msg_bus		- Postmate instance
-   * @prop {object} methods		- Method storage
+   * @prop {object} msg_bus	  	- Postmate instance
+   * @prop {object} methods		  - Method storage
    * @prop {object} properties	- Set properties storage
    * 
    * @example
