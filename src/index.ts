@@ -73,8 +73,8 @@ const COMB = {
    * @example
    * const child = await COMB.connect( "http://localhost:8002" );
    */
-  async connect(url, timeout) {
-    const child = new ChildAPI(url, timeout);
+  async connect(url, timeout, signalCb) {
+    const child = new ChildAPI(url, timeout, signalCb);
     await child.connect();
     return child;
   },
@@ -115,21 +115,23 @@ class ChildAPI {
   handshake: any;
   class_name: string;
   loaded: boolean;
+  signalCb: any;
 
   /**
    * Initialize a child frame using the given URL.
    * 
    * @class ChildAPI
    * 
-   * @param {string} url		- URL that is used as 'src' for the iframe
+   * @param {string} url - URL that is used as 'src' for the iframe
    * 
-   * @prop {string} url 		- iFrame URL
-   * @prop {number} msg_count		- Incrementing message ID
-   * @prop {object} responses		- Dictionary of request Promises waiting for their responses
-   * @prop {object} msg_bus		- Postmate instance
-   * @prop {promise} handshake	- Promise that is waiting for connection confirmation
-   * @prop {string} class_name	- iFrame's unique class name
-   * @prop {boolean} loaded		- Indicates if iFrame successfully loaded
+   * @prop {string} url         - iFrame URL
+   * @prop {number} msg_count   - Incrementing message ID
+   * @prop {object} responses   - Dictionary of request Promises waiting for their responses
+   * @prop {object} msg_bus     - Postmate instance
+   * @prop {promise} handshake  - Promise that is waiting for connection confirmation
+   * @prop {string} class_name  - iFrame's unique class name
+   * @prop {boolean} loaded     - Indicates if iFrame successfully loaded
+   * @prop {any} signalCb       - A callback that's run when we receive a signal
    * 
    * @example
    * const child = new ChildAPI( url );
@@ -138,11 +140,13 @@ class ChildAPI {
    * await child.set("mode", mode );
    * let response = await child.run("signIn");
    */
-  constructor(url, timeout = 5_000) {
+  constructor(url, timeout = 5_000, signalCb) {
     this.url = url;
     this.msg_count = 0;
     this.responses = {};
     this.loaded = false;
+
+    this.signalCb = signalCb;
 
     this.class_name = "comb-frame-" + ChildAPI.frame_count++;
     this.handshake = async_with_timeout(async () => {
@@ -186,8 +190,7 @@ class ChildAPI {
         if (this.loaded) {
           // log.error("iFrame loaded but could not communicate with COMB");
           throw new TimeoutError("Failed to complete COMB handshake", err.timeout);
-        }
-        else {
+        } else {
           // log.error("iFrame did not trigger load event");
           throw new TimeoutError("Failed to load iFrame", err.timeout);
         }
@@ -212,6 +215,10 @@ class ChildAPI {
       delete this.responses[k];
     });
 
+    if (this.signalCb) {
+      child.on('signal', this.signalCb)
+    }
+
     this.msg_bus = child;
 
     return this;
@@ -223,9 +230,9 @@ class ChildAPI {
    * @async
    * @private
    * 
-   * @param {string} method		- Internally consistent Postmate method
-   * @param {string} name		- Function name or property name
-   * @param {*} data			- Variable input that is handled by child API
+   * @param {string} method   - Internally consistent Postmate method
+   * @param {string} name     - Function name or property name
+   * @param {*} data          - Variable input that is handled by child API
    * 
    * @return {*} Response from child
    */
@@ -256,8 +263,8 @@ class ChildAPI {
    * 
    * @async
    * 
-   * @param {string} key		- Property name
-   * @param {*} value			- Property value
+   * @param {string} key  - Property name
+   * @param {*} value     - Property value
    * 
    * @return {boolean} Success status
    * 
@@ -303,13 +310,13 @@ class ParentAPI {
    * 
    * @class ParentAPI
    * 
-   * @param {object} methods		- Functions that are available for the parent to call.
-   * @param {object} properties	- Properties to memorize in the instance for later use, optional
+   * @param {object} methods    - Functions that are available for the parent to call.
+   * @param {object} properties - Properties to memorize in the instance for later use, optional
    * 
-   * @prop {promise} listener		- Promise that is waiting for parent to connect
-   * @prop {object} msg_bus		- Postmate instance
-   * @prop {object} methods		- Method storage
-   * @prop {object} properties	- Set properties storage
+   * @prop {promise} listener   - Promise that is waiting for parent to connect
+   * @prop {object} msg_bus     - Postmate instance
+   * @prop {object} methods     - Method storage
+   * @prop {object} properties  - Set properties storage
    * 
    * @example
    * const parent = new ParentAPI({
@@ -320,6 +327,7 @@ class ParentAPI {
    * await parent.connect();
    */
   constructor(methods, properties = {}) {
+
     this.methods = methods;
     this.properties = properties;
 
@@ -367,10 +375,29 @@ class ParentAPI {
    * });
    * await parent.connect();
    */
-  async connect() {
+  async connect () {
     this.msg_bus = await this.listener;
 
     return this;
+  }
+
+    /**
+   * Send holochain conductor signal to parent.
+   * 
+   * @async
+   * 
+   * @param {object} signal		- The signal
+   * 
+   * @example
+   * const parent = new ParentAPI({
+   *     "hello": async function () {
+   *         return "Hello world";
+   *     }
+   * });
+   * await parent.sendSignal(signal);
+   */
+  async sendSignal (signal) {
+    this.msg_bus.emit('signal', signal)
   }
 
 }

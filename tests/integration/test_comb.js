@@ -159,6 +159,28 @@ describe("Testing COMB", function () {
     }
   });
 
+  it("should call the provided signalCb when sendSignal is called on the parent", async function () {
+    try {
+      // have to setup our spy function in the puppeteer evaluation context
+      await page.evaluate(() => {        
+        window.signalCb = function(signal) {
+          window.signalCbCalledWith = signal
+        }
+      });
+
+      const expectedSignal = "Hello COMB";
+
+      const signalCbCalledWith = await page.evaluate(async function (chap_url, expectedSignal) {
+        window.child = await COMB.connect(chap_url, 5000, window.signalCb);
+        await child.run("test_signal", expectedSignal);
+        return window.signalCbCalledWith
+      }, chap_url, expectedSignal);
+
+      expect(signalCbCalledWith).to.equal(expectedSignal);
+    } finally {
+    }
+  });
+
   it("should timeout because of wrong frame URL", async function () {
     try {
       const result = await page.evaluate(async function () {
