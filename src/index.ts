@@ -230,9 +230,9 @@ class ChildAPI {
    * @async
    * @private
    * 
-   * @param {string} method		- Internally consistent Postmate method
-   * @param {string} name	  	- Function name or property name
-   * @param {*} data			    - Variable input that is handled by child API
+   * @param {string} method   - Internally consistent Postmate method
+   * @param {string} name     - Function name or property name
+   * @param {*} data          - Variable input that is handled by child API
    * 
    * @return {*} Response from child
    */
@@ -263,8 +263,8 @@ class ChildAPI {
    * 
    * @async
    * 
-   * @param {string} key		- Property name
-   * @param {*} value		  	- Property value
+   * @param {string} key  - Property name
+   * @param {*} value     - Property value
    * 
    * @return {boolean} Success status
    * 
@@ -310,13 +310,13 @@ class ParentAPI {
    * 
    * @class ParentAPI
    * 
-   * @param {object} methods		- Functions that are available for the parent to call.
-   * @param {object} properties	- Properties to memorize in the instance for later use, optional
+   * @param {object} methods    - Functions that are available for the parent to call.
+   * @param {object} properties - Properties to memorize in the instance for later use, optional
    * 
-   * @prop {promise} listener		- Promise that is waiting for parent to connect
-   * @prop {object} msg_bus	  	- Postmate instance
-   * @prop {object} methods		  - Method storage
-   * @prop {object} properties	- Set properties storage
+   * @prop {promise} listener   - Promise that is waiting for parent to connect
+   * @prop {object} msg_bus     - Postmate instance
+   * @prop {object} methods     - Method storage
+   * @prop {object} properties  - Set properties storage
    * 
    * @example
    * const parent = new ParentAPI({
