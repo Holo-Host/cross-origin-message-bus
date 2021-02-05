@@ -1,0 +1,37 @@
+<script src="/comb/holo_hosting_comb.js"></script>
+
+<h1>Chaperone!</h1>
+
+<script type="text/javascript">
+  (async function () {
+
+    function HolochainTestError(message) {
+      this.name = "HolochainTestError";
+      this.message = (message || "");
+    }
+    HolochainTestError.prototype = Error.prototype;
+
+    try {
+      COMB.debug();
+      const parent = await COMB.listen({
+        "test": async function (...args) {
+          return "Hello World: " + JSON.stringify(args);
+        },
+        "test_synchronous": function () {
+          return "Hello World";
+        },
+        "test_signal": function (signal) {
+          return parent.sendSignal(signal)
+        },
+        "test_error": function (...args) {
+          return new HolochainTestError("Method did not succeed\n" + JSON.stringify(args));
+        },
+        "test_synchronous_error": function () {
+          return new HolochainTestError("Method did not succeed");
+        }
+      });
+    } catch (err) {
+      console.error(String(err));
+    }
+  })();
+</script>

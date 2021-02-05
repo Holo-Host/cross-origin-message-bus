@@ -1,0 +1,22 @@
+
+<script src="/comb/holo_hosting_comb.js"></script>
+
+<h1>Chaperone!</h1>
+
+<script type="text/javascript">
+    (async function () {
+	try {
+	    COMB.debug();
+	    const parent	= await COMB.listen({
+		"long_call": function () {
+		    return new Promise((f,r) => {
+			console.log("Wait for 2 seconds...");
+			setTimeout(f, 2000, "Hello World");
+		    });
+		}
+	    });
+	} catch ( err ) {
+	    console.error( String(err) );
+	}
+    })();
+</script>
