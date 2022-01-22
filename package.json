@@ -33,7 +33,7 @@
     "chokidar-cli": "^2.0.0",
     "jsdoc": "^3.6.3",
     "mocha": "^6.2.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^3.1.1",
     "puppeteer": "^1.20.0",
     "typescript": "^3.6.4",
     "webpack": "^4.41.2",
