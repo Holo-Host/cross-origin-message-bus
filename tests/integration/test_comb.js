@@ -202,6 +202,31 @@ describe('Testing COMB', function () {
     expect(signalCbCalledWith).to.equal(expectedSignal)
   })
 
+  it('can emit signal containing Uint8Array', async function () {
+    // have to setup our spy function in the puppeteer evaluation context
+    await page.evaluate(() => {
+      window.signalCb = function (signal) {
+        window.signalCbCalledWith = signal
+      }
+    })
+
+    const answer = await page.evaluate(
+      async function (chap_url) {
+        window.child = await COMB.connect(chap_url, 5000, window.signalCb)
+        await child.run('test_signal', new Uint8Array([1, 4]))
+        const signalEmitted = window.signalCbCalledWith
+        // Puppeteer can't pass through Uint8Arrays
+        return {
+          isBytes: signalEmitted instanceof Uint8Array,
+          stringified: signalEmitted.toString()
+        }
+      },
+      chap_url,
+    )
+
+    expect(answer).to.deep.equal({ isBytes: true, stringified: '1,4' })
+  })
+
   it('should timeout because of wrong frame URL', async function () {
     const result = await page.evaluate(async function () {
       try {
