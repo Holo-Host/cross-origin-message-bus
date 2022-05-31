@@ -13,23 +13,16 @@
     try {
       COMB.debug()
       const parent = await COMB.listen({
-        test: async function (...args) {
-          return 'Hello World: ' + JSON.stringify(args)
-        },
-        test_synchronous: function () {
-          return 'Hello World'
-        },
-        test_signal: function (signal) {
-          return parent.sendSignal(signal)
-        },
-        test_error: function (...args) {
-          return new HolochainTestError(
+        test: async (...args) => 'Hello World: ' + JSON.stringify(args),
+        test_synchronous: () => 'Hello World',
+        test_signal: signal => parent.sendSignal(signal),
+        test_error: (...args) =>
+          new HolochainTestError(
             'Method did not succeed\n' + JSON.stringify(args)
-          )
-        },
-        test_synchronous_error: function () {
-          return new HolochainTestError('Method did not succeed')
-        }
+          ),
+        test_synchronous_error: () =>
+          new HolochainTestError('Method did not succeed'),
+        test_return_verbatim: arg => arg
       })
     } catch (err) {
       console.error(String(err))

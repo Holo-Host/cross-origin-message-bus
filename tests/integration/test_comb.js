@@ -116,6 +116,17 @@ describe('Testing COMB', function () {
     expect(answer).to.equal('Hello World')
   })
 
+  it('can pass through a Uint8Array', async function () {
+    let answer
+
+    answer = await page.evaluate(async function (frame_url) {
+      window.child = await COMB.connect(frame_url)
+      return await child.run('test_verbatim', new Uint8Array([0, 3]))
+    }, chap_url)
+
+    expect(answer).to.equal(new Uint8Array([0, 3]))
+  })
+
   it('should call method on child and return error', async function () {
     pageTestUtils.describeJsHandleLogs()
     let answer
