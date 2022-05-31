@@ -210,19 +210,16 @@ describe('Testing COMB', function () {
       }
     })
 
-    const answer = await page.evaluate(
-      async function (chap_url) {
-        window.child = await COMB.connect(chap_url, 5000, window.signalCb)
-        await child.run('test_signal', new Uint8Array([1, 4]))
-        const signalEmitted = window.signalCbCalledWith
-        // Puppeteer can't pass through Uint8Arrays
-        return {
-          isBytes: signalEmitted instanceof Uint8Array,
-          stringified: signalEmitted.toString()
-        }
-      },
-      chap_url,
-    )
+    const answer = await page.evaluate(async function (chap_url) {
+      window.child = await COMB.connect(chap_url, 5000, window.signalCb)
+      await child.run('test_signal', new Uint8Array([1, 4]))
+      const signalEmitted = window.signalCbCalledWith
+      // Puppeteer can't pass through Uint8Arrays
+      return {
+        isBytes: signalEmitted instanceof Uint8Array,
+        stringified: signalEmitted.toString()
+      }
+    }, chap_url)
 
     expect(answer).to.deep.equal({ isBytes: true, stringified: '1,4' })
   })

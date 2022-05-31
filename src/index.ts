@@ -1,5 +1,5 @@
 import Postmate from 'postmate'
-import { encode, decode } from "@msgpack/msgpack"
+import { encode, decode } from '@msgpack/msgpack'
 
 import async_with_timeout from './async_with_timeout'
 import { TimeoutError } from './async_with_timeout'
@@ -72,7 +72,11 @@ const COMB = {
    * @example
    * const child = await COMB.connect( "http://localhost:8002" );
    */
-  async connect (url: string, timeout: number, signalCb: (signal: unknown) => void): Promise<ChildAPI> {
+  async connect (
+    url: string,
+    timeout: number,
+    signalCb: (signal: unknown) => void
+  ): Promise<ChildAPI> {
     const child = new ChildAPI(url, timeout, signalCb)
     await child.connect()
     return child
@@ -104,20 +108,15 @@ const COMB = {
 
 type Method = 'prop' | 'exec'
 
-type Request = [number, string, Uint8Array]
-
-interface PostmateChildAPI {
-  call(method: Method, request: Request): Promise<void>
-  on(name: 'response', callback: (response: [number, Response]) => void): void
-  on(name: 'signal', callback: (signal: Signal) => void): void
-}
-
 class ChildAPI {
   static frame_count: number = 0
 
   url: string
   msg_count: number
-  responses: Record<number, [(resolved: Response) => void, (rejected: any) => void]>
+  responses: Record<
+    number,
+    [(resolved: Response) => void, (rejected: any) => void]
+  >
   msg_bus: Postmate.ParentAPI
   handshake: Promise<Postmate.ParentAPI>
   class_name: string
@@ -222,7 +221,7 @@ class ChildAPI {
     })
 
     if (this.signalCb) {
-      child.on('signal', (signalBytes) => this.signalCb(decode(signalBytes)))
+      child.on('signal', signalBytes => this.signalCb(decode(signalBytes)))
     }
 
     this.msg_bus = child
@@ -242,7 +241,12 @@ class ChildAPI {
    *
    * @return {*} Response from child
    */
-  private async request (method: Method, name: string, data: unknown, timeout = 2000): Promise<unknown> {
+  private async request (
+    method: Method,
+    name: string,
+    data: unknown,
+    timeout = 2000
+  ): Promise<unknown> {
     let msg_id = this.msg_count++
 
     this.msg_bus.call(method, [msg_id, name, encode(data)])
@@ -255,7 +259,7 @@ class ChildAPI {
 
       return await request
     }, timeout)
-    if (resp.type === "error") {
+    if (resp.type === 'error') {
       throw resp.data
     } else {
       return decode(resp.data)
@@ -395,9 +399,15 @@ class ParentAPI {
           error = e
         }
         if (error !== null) {
-          this.msg_bus.emit('response', [msg_id, { type: "error", data: String(error) }])
+          this.msg_bus.emit('response', [
+            msg_id,
+            { type: 'error', data: String(error) }
+          ])
         } else {
-          this.msg_bus.emit('response', [msg_id, { type: "ok", data: encode(resp) }])
+          this.msg_bus.emit('response', [
+            msg_id,
+            { type: 'ok', data: encode(resp) }
+          ])
         }
       },
       prop: async data => {
@@ -405,7 +415,10 @@ class ParentAPI {
 
         this.properties[key] = value
 
-        this.msg_bus.emit('response', [msg_id, { type: "ok", data: encode(undefined)}])
+        this.msg_bus.emit('response', [
+          msg_id,
+          { type: 'ok', data: encode(undefined) }
+        ])
       }
     })
   }
