@@ -153,21 +153,29 @@ describe('Testing COMB', function () {
 
     answer = await page.evaluate(async function (frame_url) {
       window.child = await COMB.connect(frame_url)
-      return await child.call('test_error', 'counting', [1, 2, 3], 4)
+      try {
+        await child.call('test_error', 'counting', [1, 2, 3], 4)
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
     }, chap_url)
 
-    expect(answer.name).to.equal('HolochainTestError')
-    expect(answer.message).to.equal(
-      'Method did not succeed\n["counting",[1,2,3],4]'
+    expect(answer).to.equal(
+      'HolochainTestError: Method did not succeed\n["counting",[1,2,3],4]'
     )
 
     answer = await page.evaluate(async function (frame_url) {
       window.child = await COMB.connect(frame_url)
-      return await child.run('test_synchronous_error')
+      try {
+        return await child.run('test_synchronous_error')
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
     }, chap_url)
 
-    expect(answer.name).to.equal('HolochainTestError')
-    expect(answer.message).to.equal('Method did not succeed')
+    expect(answer).to.equal('HolochainTestError: Method did not succeed')
   })
 
   it('should set key/value on child and await confirmation', async function () {

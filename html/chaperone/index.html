@@ -16,12 +16,14 @@
         test: async (...args) => 'Hello World: ' + JSON.stringify(args),
         test_synchronous: () => 'Hello World',
         test_signal: signal => parent.sendSignal(signal),
-        test_error: (...args) =>
-          new HolochainTestError(
+        test_error: (...args) => {
+          throw new HolochainTestError(
             'Method did not succeed\n' + JSON.stringify(args)
-          ),
-        test_synchronous_error: () =>
-          new HolochainTestError('Method did not succeed'),
+          )
+        },
+        test_synchronous_error: () => {
+          throw new HolochainTestError('Method did not succeed')
+        },
         test_return_verbatim: arg => arg
       })
     } catch (err) {
