@@ -90,23 +90,23 @@ nix-shell ../shell.nix
 
 Inside the nix shell
 ```bash
-npm install
+yarn install
 ```
 
 ### Compile (Typescript)
 
-The source is written in Typescript.  Run `npm run compile` or `make build`.
+The source is written in Typescript.  Run `yarn run compile` or `make build`.
 
 ### Bundler (Webpack)
 
-The web distribution is bundled with Webpack.  Run `npm run bundle` or `make dist`.
+The web distribution is bundled with Webpack.  Run `yarn run bundle` or `make dist`.
 
-> **NOTE:** `npm run bundle` will not automatically compile
+> **NOTE:** `yarn run bundle` will not automatically compile
 
 ### Testing
 
 ```bash
-npm test
+yarn test
 ```
 
 #### Unit tests
