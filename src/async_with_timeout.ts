@@ -15,7 +15,7 @@ class TimeoutError extends Error {
   }
 }
 
-function async_with_timeout<O> (fn: () => Promise<O>, timeout = 2000): Promise<O> {
+function async_with_timeout<T> (fn: () => Promise<T>, timeout = 2000): Promise<T> {
   return new Promise(async (f, r) => {
     const to_id = setTimeout(() => {
       r(new TimeoutError('Waited for ' + timeout / 1000 + ' seconds', timeout))
