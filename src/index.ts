@@ -1,4 +1,5 @@
 import Postmate from 'postmate'
+import { encode, decode } from '@msgpack/msgpack'
 
 import async_with_timeout from './async_with_timeout'
 import { TimeoutError } from './async_with_timeout'
@@ -71,7 +72,11 @@ const COMB = {
    * @example
    * const child = await COMB.connect( "http://localhost:8002" );
    */
-  async connect (url, timeout, signalCb) {
+  async connect (
+    url: string,
+    timeout: number,
+    signalCb: (signal: unknown) => void
+  ): Promise<ChildAPI> {
     const child = new ChildAPI(url, timeout, signalCb)
     await child.connect()
     return child
@@ -101,17 +106,22 @@ const COMB = {
   }
 }
 
+type Method = 'prop' | 'exec'
+
 class ChildAPI {
   static frame_count: number = 0
 
   url: string
   msg_count: number
-  responses: object
-  msg_bus: any
-  handshake: any
+  responses: Record<
+    number,
+    [(resolved: Response) => void, (rejected: any) => void]
+  >
+  msg_bus: Postmate.ParentAPI
+  handshake: Promise<Postmate.ParentAPI>
   class_name: string
   loaded: boolean
-  signalCb: any
+  signalCb: (signal: unknown) => void
 
   /**
    * Initialize a child frame using the given URL.
@@ -161,7 +171,7 @@ class ChildAPI {
         this.loaded = true
       })
 
-      return await handshake
+      return handshake
     }, timeout)
   }
 
@@ -176,8 +186,8 @@ class ChildAPI {
    * const child = new ChildAPI( url );
    * await child.connect();
    */
-  async connect () {
-    let child
+  async connect (): Promise<ChildAPI> {
+    let child: Postmate.ParentAPI
 
     try {
       child = await this.handshake
@@ -211,7 +221,7 @@ class ChildAPI {
     })
 
     if (this.signalCb) {
-      child.on('signal', this.signalCb)
+      child.on('signal', signalBytes => this.signalCb(decode(signalBytes)))
     }
 
     this.msg_bus = child
@@ -231,19 +241,29 @@ class ChildAPI {
    *
    * @return {*} Response from child
    */
-  private request (method, name, data, timeout = 2000) {
+  private async request (
+    method: Method,
+    name: string,
+    data: unknown,
+    timeout = 2000
+  ): Promise<unknown> {
     let msg_id = this.msg_count++
 
-    this.msg_bus.call(method, [msg_id, name, data])
+    this.msg_bus.call(method, [msg_id, name, encode(data)])
     // log.info("Sent request with msg_id:", msg_id );
 
-    return async_with_timeout(async () => {
-      const request = new Promise((f, r) => {
+    const resp = await async_with_timeout(async () => {
+      const request: Promise<Response> = new Promise((f, r) => {
         this.responses[msg_id] = [f, r]
       })
 
       return await request
     }, timeout)
+    if (resp.type === 'error') {
+      throw resp.data
+    } else {
+      return decode(resp.data)
+    }
   }
 
   /**
@@ -283,7 +303,7 @@ class ChildAPI {
    * @example
    * let response = await child.run( "some_method", "argument 1", 2, 3 );
    */
-  async run (method, ...args) {
+  async run (method: string, ...args: unknown[]): Promise<unknown> {
     return await this.request('exec', method, args)
   }
 
@@ -292,10 +312,27 @@ class ChildAPI {
   }
 }
 
+type Response =
+  | {
+      type: 'ok'
+      data: Uint8Array
+    }
+  | {
+      type: 'error'
+      data: string
+    }
+
+type Signal = Uint8Array
+
+interface PostmateParentAPI {
+  emit(type: 'response', resp: [number, Response]): Promise<void>
+  emit(type: 'signal', signal: Signal): Promise<void>
+}
+
 class ParentAPI {
   listener: any
-  msg_bus: any
-  methods: object
+  msg_bus: PostmateParentAPI
+  methods: Record<string, (...args: unknown[]) => Promise<unknown>>
   properties: object
 
   /**
@@ -324,8 +361,8 @@ class ParentAPI {
     this.properties = properties
 
     this.listener = new Postmate.Model({
-      exec: async data => {
-        const [msg_id, method, args] = data
+      exec: async (data: [number, string, Uint8Array]) => {
+        const [msg_id, method, arg_bytes] = data
 
         const fn = this.methods[method]
 
@@ -333,33 +370,55 @@ class ParentAPI {
           // log.error("Method does not exist", method );
           return this.msg_bus.emit('response', [
             msg_id,
-            new Error("Method '" + method + "' does not exist")
+            { type: 'error', data: "Method '" + method + "' does not exist" }
           ])
         }
         if (typeof fn !== 'function') {
           // log.error("Method is not a function: type", typeof fn );
           return this.msg_bus.emit('response', [
             msg_id,
-            new Error(
-              "Method '" +
+            {
+              type: 'error',
+              data:
+                "Method '" +
                 method +
                 "' is not a function. Found type '" +
                 typeof fn +
                 "'"
-            )
+            }
           ])
         }
 
-        const resp = await fn.apply(this.properties, args)
+        const args: unknown[] = decode(arg_bytes) as unknown[]
 
-        this.msg_bus.emit('response', [msg_id, resp])
+        let resp: unknown | null = null
+        let error: unknown | null = null
+        try {
+          resp = await fn.apply(this.properties, args)
+        } catch (e) {
+          error = e
+        }
+        if (error !== null) {
+          this.msg_bus.emit('response', [
+            msg_id,
+            { type: 'error', data: String(error) }
+          ])
+        } else {
+          this.msg_bus.emit('response', [
+            msg_id,
+            { type: 'ok', data: encode(resp) }
+          ])
+        }
       },
       prop: async data => {
         const [msg_id, key, value] = data
 
         this.properties[key] = value
 
-        this.msg_bus.emit('response', [msg_id, true])
+        this.msg_bus.emit('response', [
+          msg_id,
+          { type: 'ok', data: encode(undefined) }
+        ])
       }
     })
   }
@@ -400,8 +459,8 @@ class ParentAPI {
    * });
    * await parent.sendSignal(signal);
    */
-  async sendSignal (signal) {
-    this.msg_bus.emit('signal', signal)
+  async sendSignal (signal: unknown) {
+    this.msg_bus.emit('signal', encode(signal))
   }
 }
 

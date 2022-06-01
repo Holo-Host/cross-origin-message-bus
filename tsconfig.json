@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+      "target": "ES2020",
+      "module": "CommonJS",
+
+      "composite": true,
+      "esModuleInterop": true,
+
+      "forceConsistentCasingInFileNames": true,
+      "strict": false, // true,
+      "skipLibCheck": true,
+
+      "types": [
+        "node"
+      ]
+    },
+
+    "files": [],
+
+    "references": [
+      { "path": "./src/tsconfig.json" },
+      { "path": "./src/tsconfig.es.json" }
+    ]
+  }

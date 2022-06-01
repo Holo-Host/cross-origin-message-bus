@@ -34,17 +34,31 @@ class PageTestUtils {
 
     this.describeJsHandleLogs = () =>
       page.on('console', async msg => {
-        const args = await Promise.all(
-          msg.args().map(arg => this.describeJsHandle(arg))
-        ).catch(error => console.log(error.message))
-        console.log(...args)
+        try {
+          const args = await Promise.all(
+            msg.args().map(arg => this.describeJsHandle(arg))
+          )
+          console.log(...args)
+        } catch (e) {
+          console.log(
+            'Could not asynchronously forward console logs from Puppeteer:',
+            e
+          )
+        }
       })
 
-    this.describeJsHandle = jsHandle => {
-      return jsHandle.executionContext().evaluate(arg => {
-        if (arg instanceof Error) return arg.message
-        else return arg
-      }, jsHandle)
+    this.describeJsHandle = async jsHandle => {
+      try {
+        return await jsHandle
+          .executionContext()
+          .evaluate(arg => (arg instanceof Error ? arg.message : arg), jsHandle)
+      } catch (e) {
+        if (e.toString().includes('Target closed')) {
+          // Page was closed before we could load the message
+          return '<page closed>'
+        }
+        throw e
+      }
     }
   }
 }
@@ -70,6 +84,7 @@ describe('Testing COMB', function () {
     pageTestUtils = new PageTestUtils(page)
 
     pageTestUtils.logPageErrors()
+    pageTestUtils.describeJsHandleLogs()
   })
 
   afterEach(async () => {
@@ -83,230 +98,228 @@ describe('Testing COMB', function () {
   })
 
   it('should insert Chaperone iframe into hApp window', async function () {
-    try {
-      await page.evaluate(async function (frame_url) {
-        const child = await COMB.connect(frame_url)
-      }, chap_url)
+    await page.evaluate(async function (frame_url) {
+      const child = await COMB.connect(frame_url)
+    }, chap_url)
 
-      const parent = page.mainFrame()
-      const frames = parent.childFrames()
-      log.debug('Frames: %s', frames.length)
+    const parent = page.mainFrame()
+    const frames = parent.childFrames()
+    log.debug('Frames: %s', frames.length)
 
-      expect(frames.length).to.equal(1)
+    expect(frames.length).to.equal(1)
 
-      const chap_frame = frames[0]
+    const chap_frame = frames[0]
 
-      expect(frames[0].url()).to.equal(chap_url)
-    } finally {
-    }
+    expect(frames[0].url()).to.equal(chap_url)
   })
 
   it('should call method on child and await response', async function () {
     let answer
-    try {
-      answer = await page.evaluate(async function (frame_url) {
-        window.child = await COMB.connect(frame_url)
-        return await child.run('test', 'counting', [1, 2, 3], 4)
-      }, chap_url)
 
-      expect(answer).to.equal('Hello World: ["counting",[1,2,3],4]')
+    answer = await page.evaluate(async function (frame_url) {
+      window.child = await COMB.connect(frame_url)
+      const resp = await child.run('test', 'counting', [1, 2, 3], 4)
+      return resp
+    }, chap_url)
 
-      answer = await page.evaluate(async function (frame_url) {
-        window.child = await COMB.connect(frame_url)
-        return await child.run('test_synchronous')
-      }, chap_url)
+    expect(answer).to.equal('Hello World: ["counting",[1,2,3],4]')
 
-      expect(answer).to.equal('Hello World')
-    } finally {
-    }
+    answer = await page.evaluate(async function (frame_url) {
+      window.child = await COMB.connect(frame_url)
+      return await child.run('test_synchronous')
+    }, chap_url)
+
+    expect(answer).to.equal('Hello World')
+  })
+
+  it('can pass through a Uint8Array', async function () {
+    const answer = await page.evaluate(async function (frame_url) {
+      window.child = await COMB.connect(frame_url)
+      const resp = await child.run(
+        'test_return_verbatim',
+        new Uint8Array([0, 3])
+      )
+      // Puppeteer can't pass through Uint8Arrays
+      return {
+        isBytes: resp instanceof Uint8Array,
+        stringified: resp.toString()
+      }
+    }, chap_url)
+    expect(answer).to.deep.equal({ isBytes: true, stringified: '0,3' })
   })
 
   it('should call method on child and return error', async function () {
-    pageTestUtils.describeJsHandleLogs()
     let answer
-    try {
-      answer = await page.evaluate(async function (frame_url) {
-        window.child = await COMB.connect(frame_url)
-        return await child.call('test_error', 'counting', [1, 2, 3], 4)
-      }, chap_url)
 
-      expect(answer.name).to.equal('HolochainTestError')
-      expect(answer.message).to.equal(
-        'Method did not succeed\n["counting",[1,2,3],4]'
-      )
+    answer = await page.evaluate(async function (frame_url) {
+      window.child = await COMB.connect(frame_url)
+      try {
+        await child.call('test_error', 'counting', [1, 2, 3], 4)
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
+    }, chap_url)
 
-      answer = await page.evaluate(async function (frame_url) {
-        window.child = await COMB.connect(frame_url)
+    expect(answer).to.equal(
+      'HolochainTestError: Method did not succeed\n["counting",[1,2,3],4]'
+    )
+
+    answer = await page.evaluate(async function (frame_url) {
+      window.child = await COMB.connect(frame_url)
+      try {
         return await child.run('test_synchronous_error')
-      }, chap_url)
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
+    }, chap_url)
 
-      expect(answer.name).to.equal('HolochainTestError')
-      expect(answer.message).to.equal('Method did not succeed')
-    } finally {
-    }
+    expect(answer).to.equal('HolochainTestError: Method did not succeed')
   })
 
   it('should set key/value on child and await confirmation', async function () {
-    try {
-      const answer = await page.evaluate(async function (frame_url) {
-        const child = await COMB.connect(frame_url)
-        return await child.set('mode', 'develop')
-      }, chap_url)
+    const answer = await page.evaluate(async function (frame_url) {
+      const child = await COMB.connect(frame_url)
+      return await child.set('mode', 'develop')
+    }, chap_url)
 
-      expect(answer).to.be.true
-    } finally {
-    }
+    expect(answer).to.be.null
   })
 
   it('should call the provided signalCb when sendSignal is called on the parent', async function () {
-    try {
-      // have to setup our spy function in the puppeteer evaluation context
-      await page.evaluate(() => {
-        window.signalCb = function (signal) {
-          window.signalCbCalledWith = signal
-        }
-      })
+    // have to setup our spy function in the puppeteer evaluation context
+    await page.evaluate(() => {
+      window.signalCb = function (signal) {
+        window.signalCbCalledWith = signal
+      }
+    })
 
-      const expectedSignal = 'Hello COMB'
+    const expectedSignal = 'Hello COMB'
 
-      const signalCbCalledWith = await page.evaluate(
-        async function (chap_url, expectedSignal) {
-          window.child = await COMB.connect(chap_url, 5000, window.signalCb)
-          await child.run('test_signal', expectedSignal)
-          return window.signalCbCalledWith
-        },
-        chap_url,
-        expectedSignal
-      )
+    const signalCbCalledWith = await page.evaluate(
+      async function (chap_url, expectedSignal) {
+        window.child = await COMB.connect(chap_url, 5000, window.signalCb)
+        await child.run('test_signal', expectedSignal)
+        return window.signalCbCalledWith
+      },
+      chap_url,
+      expectedSignal
+    )
 
-      expect(signalCbCalledWith).to.equal(expectedSignal)
-    } finally {
-    }
+    expect(signalCbCalledWith).to.equal(expectedSignal)
+  })
+
+  it('can emit signal containing Uint8Array', async function () {
+    // have to setup our spy function in the puppeteer evaluation context
+    await page.evaluate(() => {
+      window.signalCb = function (signal) {
+        window.signalCbCalledWith = signal
+      }
+    })
+
+    const answer = await page.evaluate(async function (chap_url) {
+      window.child = await COMB.connect(chap_url, 5000, window.signalCb)
+      await child.run('test_signal', new Uint8Array([1, 4]))
+      const signalEmitted = window.signalCbCalledWith
+      // Puppeteer can't pass through Uint8Arrays
+      return {
+        isBytes: signalEmitted instanceof Uint8Array,
+        stringified: signalEmitted.toString()
+      }
+    }, chap_url)
+
+    expect(answer).to.deep.equal({ isBytes: true, stringified: '1,4' })
   })
 
   it('should timeout because of wrong frame URL', async function () {
-    try {
-      const result = await page.evaluate(async function () {
-        try {
-          await COMB.connect('http://localhost:55555', 500)
-        } catch (err) {
-          console.log('Error message value:', err.message)
-          return {
-            name: err.name,
-            message: err.message
-          }
-        }
-      })
-      log.debug('Error result: %s', result)
+    const result = await page.evaluate(async function () {
+      try {
+        await COMB.connect('http://localhost:55555', 500)
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
+    })
+    log.debug('Error result: %s', result)
 
-      expect(result.name).to.equal('TimeoutError')
-      expect(result.message).to.equal('Failed to load iFrame')
-    } finally {
-    }
+    expect(result).to.equal('TimeoutError: Failed to load iFrame')
   })
 
   it('should timeout because COMB is not listening', async function () {
     const fail_url = `${chap_host}/comb_not_listening.html`
-    try {
-      const result = await page.evaluate(async function (frame_url) {
-        try {
-          await COMB.connect(frame_url, 500)
-        } catch (err) {
-          console.log('Error message value:', err.message)
-          return {
-            name: err.name,
-            message: err.message
-          }
-        }
-      }, fail_url)
 
-      expect(result.name).to.equal('TimeoutError')
-      expect(result.message).to.equal('Failed to load iFrame')
-    } finally {
-    }
+    const result = await page.evaluate(async function (frame_url) {
+      try {
+        await COMB.connect(frame_url, 500)
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
+    }, fail_url)
+
+    expect(result).to.equal('TimeoutError: Failed to load iFrame')
   })
 
   it("should timeout because method didn't respond", async function () {
     const fail_url = `${chap_host}/comb_method_no_response.html`
-    try {
-      const result = await page.evaluate(async function (frame_url) {
-        try {
-          const child = await COMB.connect(frame_url)
-          await child.run('timeout')
-        } catch (err) {
-          console.log('Error message value:', err.message)
-          return {
-            name: err.name,
-            message: err.message
-          }
-        }
-      }, fail_url)
 
-      expect(result.name).to.equal('TimeoutError')
-      expect(result.message).to.equal('Waited for 2 seconds')
-    } finally {
-    }
+    const result = await page.evaluate(async function (frame_url) {
+      try {
+        const child = await COMB.connect(frame_url)
+        await child.run('timeout')
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
+    }, fail_url)
+
+    expect(result).to.equal('TimeoutError: Waited for 2 seconds')
   })
 
   it('should not timeout because of long call', async function () {
     const pass_url = `${chap_host}/comb_method_long_wait.html`
-    try {
-      const result = await page.evaluate(async function (frame_url) {
-        const child = await COMB.connect(frame_url)
-        return await child.call('long_call')
-      }, pass_url)
 
-      expect(result).to.equal('Hello World')
-    } finally {
-    }
+    const result = await page.evaluate(async function (frame_url) {
+      const child = await COMB.connect(frame_url)
+      return await child.call('long_call')
+    }, pass_url)
+
+    expect(result).to.equal('Hello World')
   })
 
   it('should throw error because method does not exist', async function () {
     const fail_url = `${chap_host}/comb_method_does_not_exist.html`
-    try {
-      const result = await page.evaluate(async function (frame_url) {
-        try {
-          const child = await COMB.connect(frame_url)
-          await child.run('undefined_method')
-        } catch (err) {
-          console.log('Error message value:', err.message)
-          return {
-            name: err.name,
-            message: err.message
-          }
-        }
-      }, fail_url)
 
-      expect(result.name).to.equal('Error')
-      expect(result.message).to.equal(
-        "Method 'undefined_method' does not exist"
-      )
-    } finally {
-    }
+    const result = await page.evaluate(async function (frame_url) {
+      try {
+        const child = await COMB.connect(frame_url)
+        await child.run('undefined_method')
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
+    }, fail_url)
+
+    expect(result).to.equal("Method 'undefined_method' does not exist")
   })
 
   it('should throw error because method is not a function', async function () {
     const fail_url = `${chap_host}/comb_method_is_not_a_function.html`
-    try {
-      const result = await page.evaluate(async function (frame_url) {
-        try {
-          const child = await COMB.connect(frame_url)
-          await child.run('not_a_function')
-        } catch (err) {
-          console.log('Error message value:', err.message)
-          return {
-            name: err.name,
-            message: err.message
-          }
-        }
-      }, fail_url)
 
-      expect(result.name).to.equal('Error')
-      expect(result.message).to.equal(
-        "Method 'not_a_function' is not a function. Found type 'object'"
-      )
-    } finally {
-    }
+    const result = await page.evaluate(async function (frame_url) {
+      try {
+        const child = await COMB.connect(frame_url)
+        await child.run('not_a_function')
+      } catch (err) {
+        console.log('Caught expected error:', err)
+        return err.toString()
+      }
+    }, fail_url)
+
+    expect(result).to.equal(
+      "Method 'not_a_function' is not a function. Found type 'object'"
+    )
   })
 
   it('should not emit any console.log messages', async function () {

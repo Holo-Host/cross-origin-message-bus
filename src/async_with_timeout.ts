@@ -1,7 +1,7 @@
 class TimeoutError extends Error {
   timeout: number
 
-  constructor (message: string, timeout: number, ...params) {
+  constructor (message: string, timeout: number) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(message)
 
@@ -15,7 +15,7 @@ class TimeoutError extends Error {
   }
 }
 
-function async_with_timeout (fn, timeout = 2000): Promise<any> {
+function async_with_timeout<T> (fn: () => Promise<T>, timeout = 2000): Promise<T> {
   return new Promise(async (f, r) => {
     const to_id = setTimeout(() => {
       r(new TimeoutError('Waited for ' + timeout / 1000 + ' seconds', timeout))
