@@ -2,18 +2,19 @@
 NAME			= holo_hosting_comb
 
 build/index.js:		src/index.ts
-	npm run compile
+	yarn run compile
 
 dist/$(NAME).js:	build/index.js webpack.config.js
-	npm run bundle
+	yarn run bundle
 
 docs/index.html:	build/index.js
 	npx jsdoc --verbose -c ./docs/.jsdoc.json --private --destination ./docs build/index.js
 
-package-lock.json: package.json 
-	npm install
+yarn.lock: package.json 
+	yarn install
 	touch $@
-node_modules: package-lock.json
+
+node_modules: yarn.lock
 
 
 .PHONY:		src build dist docs docs-watch dist-watch preview-package publish-docs publish-package
