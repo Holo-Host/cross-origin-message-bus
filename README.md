@@ -8,6 +8,11 @@ COMB is a library that facilitates the calls between the parent window (hApp UI)
 Used between [Holo Chaperone](https://github.com/Holo-Host/chaperone/tree/develop) and `Holo Hosting
 Web SDK`.
 
+## Ownership Info
+Codeowner: @robbiecarlton
+Consulted: None
+Informed: @paterick
+
 ## Architecture
 
 COMB is designed to make an iFrame feel like a script.  With this in mind, the expectation is that
