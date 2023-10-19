@@ -34,7 +34,7 @@ Both the parent window and iFrame must load COMB.
 <script type="text/javascript" src="./holo_hosting_comb.js"></script>
 <script type="text/javascript">
 (async () => {
-    const child = await comb.connect( url, 5000, signal => console.log('comb got signal', signal) );
+    const child = await comb.connect( url, document.body, 5000, signal => console.log('comb got signal', signal) );
 
     await child.set("development_mode", true );
     await child.set("welcome_greeting", "Hello" );

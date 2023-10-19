@@ -219,7 +219,7 @@ describe('Testing COMB', function () {
     })
 
     const answer = await page.evaluate(async function (chap_url) {
-      window.child = await COMB.connect(chap_url, 5000, window.signalCb)
+      window.child = await COMB.connect(chap_url, document.body, 5000, window.signalCb)
       await child.run('test_signal', new Uint8Array([1, 4]))
       const signalEmitted = window.signalCbCalledWith
       // Puppeteer can't pass through Uint8Arrays
@@ -235,7 +235,7 @@ describe('Testing COMB', function () {
   it('should timeout because of wrong frame URL', async function () {
     const result = await page.evaluate(async function () {
       try {
-        await COMB.connect('http://localhost:55555', 500)
+        await COMB.connect('http://localhost:55555', document.body, 500)
       } catch (err) {
         console.log('Caught expected error:', err)
         return err.toString()
@@ -251,7 +251,7 @@ describe('Testing COMB', function () {
 
     const result = await page.evaluate(async function (frame_url) {
       try {
-        await COMB.connect(frame_url, 500)
+        await COMB.connect(frame_url, document.body, 500)
       } catch (err) {
         console.log('Caught expected error:', err)
         return err.toString()

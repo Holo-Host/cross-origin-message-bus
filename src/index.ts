@@ -66,7 +66,8 @@ const COMB = {
    * @function connect
    *
    * @param {string} url		- URL that is used as 'src' for the iframe
-   *
+   * @param {HTMLElement} container	  - Parent HTMLElement to insert the iframe into
+
    * @return {ChildAPI} Connection to child frame
    *
    * @example
@@ -74,10 +75,11 @@ const COMB = {
    */
   async connect (
     url: string,
+    container: HTMLElement,
     timeout: number,
     signalCb: (signal: unknown) => void
   ): Promise<ChildAPI> {
-    const child = new ChildAPI(url, timeout, signalCb)
+    const child = new ChildAPI(url, container, timeout, signalCb)
     await child.connect()
     return child
   },
@@ -146,7 +148,7 @@ class ChildAPI {
    * await child.set("mode", mode );
    * let response = await child.run("signIn");
    */
-  constructor (url, timeout = 5_000, signalCb) {
+  constructor (url, container: HTMLElement = document.body, timeout = 5_000, signalCb) {
     this.url = url
     this.msg_count = 0
     this.responses = {}
@@ -158,7 +160,7 @@ class ChildAPI {
     this.handshake = async_with_timeout(async () => {
       // log.info("Init Postmate handshake");
       const handshake = new Postmate({
-        container: document.body,
+        container,
         url: this.url,
         classListArray: [this.class_name]
       })
