@@ -34,7 +34,7 @@ Both the parent window and iFrame must load COMB.
 <script type="text/javascript" src="./holo_hosting_comb.js"></script>
 <script type="text/javascript">
 (async () => {
-    const child = await comb.connect( url, 5000, signal => console.log('comb got signal', signal) );
+    const child = await comb.connect( url, document.body, 5000, signal => console.log('comb got signal', signal) );
 
     await child.set("development_mode", true );
     await child.set("welcome_greeting", "Hello" );
@@ -90,23 +90,23 @@ nix-shell ../shell.nix
 
 Inside the nix shell
 ```bash
-npm install
+yarn install
 ```
 
 ### Compile (Typescript)
 
-The source is written in Typescript.  Run `npm run compile` or `make build`.
+The source is written in Typescript.  Run `yarn run compile` or `make build`.
 
 ### Bundler (Webpack)
 
-The web distribution is bundled with Webpack.  Run `npm run bundle` or `make dist`.
+The web distribution is bundled with Webpack.  Run `yarn run bundle` or `make dist`.
 
-> **NOTE:** `npm run bundle` will not automatically compile
+> **NOTE:** `yarn run bundle` will not automatically compile
 
 ### Testing
 
 ```bash
-npm test
+yarn test
 ```
 
 #### Unit tests

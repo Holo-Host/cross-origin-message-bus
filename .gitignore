@@ -2,8 +2,9 @@ node_modules
 dist
 .cache
 lib
+lib.es
 *~
-build
 \#*#
 .#*
 docs
+.tsbuildinfo

@@ -1,13 +1,15 @@
 {
   "name": "@holo-host/comb",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "Cross-origin message bus (COMB) facilitates communication between a hApp UI and Holo Chaperone",
-  "main": "build/index.js",
+  "main": "lib/index.js",
+  "module": "lib.es/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "npm run compile && npm run bundle",
-    "compile": "tsc --esModuleInterop --lib es2015,dom --outDir ./build ./src/index.ts",
-    "bundle": "npx webpack --mode production --output-filename holo_hosting_comb.js ./build/index.js",
-    "test": "mocha --recursive --timeout 5000 ./tests/"
+    "compile": "tsc -b",
+    "bundle": "npx webpack --mode production --output-filename holo_hosting_comb.js ./lib/index.js",
+    "test": "yarn build && mocha --recursive --timeout 5000 ./tests/"
   },
   "author": "Holo Ltd.",
   "contributors": [
@@ -20,12 +22,15 @@
   },
   "files": [
     "README.md",
-    "build/*"
+    "lib",
+    "lib.es"
   ],
   "dependencies": {
+    "@msgpack/msgpack": "^2.7.1",
     "postmate": "^1.5.1"
   },
   "devDependencies": {
+    "@types/postmate": "^1.5.2",
     "@types/node": "^12.11.1",
     "@whi/stdlog": "^0.3.0",
     "braintree-jsdoc-template": "^3.3.0",
