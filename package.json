@@ -1,6 +1,6 @@
 {
   "name": "@holo-host/comb",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Cross-origin message bus (COMB) facilitates communication between a hApp UI and Holo Chaperone",
   "main": "lib/index.js",
   "module": "lib.es/index.js",
@@ -27,11 +27,13 @@
   ],
   "dependencies": {
     "@msgpack/msgpack": "^2.7.1",
-    "postmate": "^1.5.1"
+    "postmate": "^1.5.1",
+    "webpack": "^5.89.0",
+    "webpack-cli": "4.10.0"
   },
   "devDependencies": {
-    "@types/postmate": "^1.5.2",
     "@types/node": "^12.11.1",
+    "@types/postmate": "^1.5.2",
     "@whi/stdlog": "^0.3.0",
     "braintree-jsdoc-template": "^3.3.0",
     "chai": "^4.2.0",
@@ -40,8 +42,6 @@
     "mocha": "^6.2.1",
     "node-fetch": "^2.6.0",
     "puppeteer": "^1.20.0",
-    "typescript": "^3.6.4",
-    "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9"
+    "typescript": "^3.6.4"
   }
 }
